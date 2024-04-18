@@ -17,7 +17,7 @@ We implement, verify and compare increasingly complete decision procedures for t
 - Note: to implement support for associativity and commutativity, we can normalize the terms by ordering the arguments of the functions. Coq does this for the `ring` tactic. Matt implemented something similar for Scala compile-time operations 2 years ago ;)
 - Question: shallow or deep? See chapter 15 of the course book.
     - Deep: create an inductive type to represent the expressions.
-    - Shallow: translate directly to Coq terms.
+    - Shallow: translate our input language directly to Coq terms, without defining an inductive type to represent the terms of the input language.
 - Possible extension: make the procedure available as a Coq tactic. 3 ways to do this:
     - Write the tactic as an OCaml "plugin". Probably not verified, cannot re-use code written in Coq.
     - Write the tactic LTac. Slower, produce proofs for specific instances.
