@@ -20,5 +20,5 @@ Show that `f(a) = f(d)`.
 
 There is no way to find it out if we haven't "repaired" the graph beforehand to derive that `f(b) = f(c)`.
 
-## Why do we need to repair in DFS order?
+## Why do we need to repair in BFS order?
 
