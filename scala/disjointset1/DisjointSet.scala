@@ -5,11 +5,11 @@ import annotation.tailrec
 /** Simple immutable implementation of a disjoint set data structure, without
   * rank or path compression.
   */
-final class DisjointSet[A](parents: Map[A, A]):
-  def union(a: A, b: A): Unit =
+final class DisjointSet[A](parents: Map[A, A] = Map.empty):
+  def union(a: A, b: A): DisjointSet[A] =
     val aRepr = find(a)
     val bRepr = find(b)
-    DisjointSet(parents + (aRepr -> bRepr))
+    DisjointSet(parents + (bRepr -> aRepr))
 
   @tailrec
   def find(a: A): A =
