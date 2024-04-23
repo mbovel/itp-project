@@ -8,6 +8,7 @@ Module Type GRAPH.
   Parameter graph: Type.
 
   Parameter empty : graph.
+  Parameter make: list (A * A) -> graph.
   Parameter is_eq : graph -> A -> A -> Prop.
   Parameter insert : (A * A) -> graph -> graph.
 End GRAPH.

@@ -5,6 +5,8 @@ Import ListNotations.
 Require Import String.
 Open Scope string_scope.
 
+Require Import Graph.
+
 Inductive eq {A : Type} (axms : list (A * A)) : A -> A -> Prop :=
   | eq_axms: forall x y: A, In (x, y) axms -> eq axms x y
   | eq_refl: forall x: A, eq axms x x
@@ -26,3 +28,4 @@ Proof.
     - apply eq_axms. simpl. right. left. reflexivity.
 Qed.
 
+Theorem MainTheorem: forall (A: Type) (axms: list (A * A)) (x y: A), eq axms x y <-> is_eq (make axms) x y.
