@@ -42,3 +42,4 @@ Deliverables: Coq code for each week.
 
 - [Techniques for Program Verification, Nelson, 1981](https://people.eecs.berkeley.edu/~necula/Papers/nelson-thesis.pdf)
 - https://egraphs-good.github.io
+- [Proof-producing Congruence Closure](https://www.cs.upc.edu/~oliveras/rta05.pdf)
