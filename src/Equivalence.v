@@ -25,3 +25,4 @@ Proof.
     - eapply eq_axms. simpl. left. reflexivity.
     - apply eq_axms. simpl. right. left. reflexivity.
 Qed.
+
