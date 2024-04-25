@@ -22,7 +22,7 @@ The [*Union-Find*](https://en.wikipedia.org/wiki/Disjoint-set_data_structure) da
 - RST: $rst(C) \subseteq C'$
 - Congruence: $\forall f, a, b. \; (f(a), f(b)) \in C' \Rightarrow (a, b) \in C'$
 
-[The *congruent closure algorithm* is a decision procedure for the congruent closure relation. This procuedure, described notably in [] relies on the Union-Find mechanism, but adds an indirection: it maintains equivalences between class identifiers. This, and using hash-consing allows to manage equivalences not just between elements but also between function applications.]
+[The *congruent closure algorithm* is a decision procedure for the congruent closure relation. This procuedure, described notably in [Nelson, 1981] relies on the Union-Find mechanism, but adds an indirection: it maintains equivalences between class identifiers. This, and using hash-consing allows to manage equivalences not just between elements but also between function applications.]
 
 ## Implementation
 
@@ -48,6 +48,8 @@ Deliverables: Coq code for each week.
 
 ## References
 
-- [Techniques for Program Verification, Nelson, 1981](https://people.eecs.berkeley.edu/~necula/Papers/nelson-thesis.pdf)
-- https://egraphs-good.github.io
+- [Techniques for Program Verification, Nelson, 1981](https://people.eecs.berkeley.edu/~necula/Papers/nelson-thesis.pdf): original paper on congruent closure algorithm.
+- [Intro to EGraphs, Colab](https://colab.research.google.com/drive/1tNOQijJqe5tw-Pk9iqd6HHb2abC5aRid): nice introduction to EGraphs.
+- [EGG (EGraphs Good)](https://egraphs-good.github.io): combining EGraphs and equality saturation to implement optimizers.
 - [Proof-producing Congruence Closure](https://www.cs.upc.edu/~oliveras/rta05.pdf)
+- [Project: congruence closure algorithm in Coq using dependent types](https://github.com/knuthingmuch/congruence-closure): similar course project from 2019.
