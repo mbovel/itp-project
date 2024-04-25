@@ -15,8 +15,9 @@ final case class DisjointSet[A](val classes: List[List[A]]):
 
   def find(a: A): A = findEqClass(a).getOrElse(List(a)).head
 
-  def findEqClass(a: A): Option[List[A]] =
-    classes.filter(_.contains(a)).headOption
+  private def findEqClass(a: A): Option[List[A]] =
+    classes.find(_.contains(a))
+
   def equiv(a: A, b: A): Boolean =
     find(a) == find(b)
 
