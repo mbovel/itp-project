@@ -26,7 +26,15 @@ The [*Union-Find*](https://en.wikipedia.org/wiki/Disjoint-set_data_structure) da
 
 ## Implementation
 
-[We propose to implement balblbaa]
+We propose to start with an implementation equivalence as an inductive definition parametrized by a relation `R` represented as a `list (A * A)` of pairs of elements of type `A`:
+
+```coq
+Inductive eq {A : Type} (axms : list (A * A)) : A -> A -> Prop :=
+  | eq_axms: forall x y: A, In (x, y) axms -> eq axms x y
+  | eq_refl: forall x: A, eq axms x x
+  | eq_sym: forall x y: A, eq axms y x -> eq axms x y
+  | eq_trans: forall x y z: A, eq axms x y -> eq axms y z -> eq axms x z.
+```
 
 ## Timeline
 
