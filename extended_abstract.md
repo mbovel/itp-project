@@ -4,7 +4,7 @@
 
 ## Abstract
 
-We implement, verify, and compare increasingly complete decision procedures for the theory of equality in the Coq proof assistant. We start with a decision procedure for equality only (reflexive-symmetric-transitive closure), then extend it to uninterpreted functions (congruent closure), initially for single argument functions and later for multiple arguments. Subsequently, we introduce support for commutativity by adding a normalization step. If time permits, we plan to also extend our framework to handle lists and to provide a mechanized worst-case analysis of the decision procedures.
+We implement, verify, and compare increasingly complete decision procedures for the theory of equality in the Coq proof assistant. We start with a decision procedure for equality only (reflexive-symmetric-transitive closure), then extend it to uninterpreted functions (congruent closure), initially for single argument functions and later for multiple arguments. Subsequently, we introduce support for commutativity by adding a normalization step. If time permits, we plan to also extend our framework to handle lists and to provide a mechanized worst-case analysis of the decision procedures performance.
 
 ## Motivation
 
@@ -40,7 +40,7 @@ Inductive eq {A : Type} (axms : list (A * A)) : A -> A -> Prop :=
   | eq_trans: forall x y z: A, eq axms x y -> eq axms y z -> eq axms x z.
 ```
 
-To start, we will implement a basic structure for managing equality using functions that will expose the `empty` function for initialization, `union` to add equivalences, and `equiv` to check equivalence.
+To start, we will implement a basic structure for managing equality using functions that will expose the `empty` function for initialization, `union` to add equivalences, and `equiv` to check equivalence of two terms.
 
 With this structure, the main theorem to prove will be the following:
 
