@@ -36,6 +36,17 @@ Inductive eq {A : Type} (axms : list (A * A)) : A -> A -> Prop :=
   | eq_trans: forall x y z: A, eq axms x y -> eq axms y z -> eq axms x z.
 ```
 
+The main theorem to prove is the following:
+
+```coq
+Axiom make_correct: forall axms x y,
+    let ds := fold_left (fun ds axm => union ds (fst axm) (snd axm)) axms empty in
+    eq axms x y <-> equiv ds x y = true.
+
+```
+
+which, in a nutshell, states that the relation expressed by the datastructure `ds` created using the axioms (i.e., a list of equivalences) is equivalent to the relation `eq` expressed by the inductive definition, which represents the reflexive-symmetric-transitive closure of the axioms.
+
 ## Timeline
 
 - Project week 4: definitions, and decision procedure for equality only.
