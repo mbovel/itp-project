@@ -132,16 +132,57 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
   Qed.
 
 
-  Lemma union_mono: forall ds x rx y ry z w,
+  Lemma union_mono: forall ds x rx y ry z w r,
     let ds' := (union ds z w) in
-    (repr ds x) = rx -> (repr ds y) = ry -> rx = ry -> (repr ds' x) = (repr ds' y).
+    (repr ds x) = rx -> (repr ds y) = ry -> rx = ry -> rx = Some r -> (repr ds' x) = (repr ds' y).
   Proof.
     intros.
     unfold union in ds'.
     destruct (repr ds z) eqn:Heqz, (repr ds w) eqn:Heqw.
-    - admit.
-    - destruct 
-
+    - destruct ( r =? a0) eqn:HeqRA0.
+      (* r == a0 *)
+      + Search (map). admit.
+      + admit.
+    - destruct ( w =? x ) eqn:Heqwx.
+      (* w == x*)
+      + simpl. destruct ( w =? y) eqn:Heqwy.
+        (* w == y*)
+        ++ unfold repr. simpl. rewrite Heqwx. rewrite Heqwy. reflexivity.
+        (* w != y && w == x *)
+        ++ simpl. rewrite H1 in H2. apply beq_correct in Heqwx. subst. rewrite H2 in H1. rewrite H1 in Heqw. discriminate.
+      (* w != x *)
+      + simpl. destruct ( w =? y) eqn:Heqwy.
+        (* w == y && w != x *)
+        ++ rewrite beq_correct in Heqwy. subst. rewrite H1 in H2. rewrite H2 in Heqw. discriminate.
+        (* w != y && w != x *)
+        ++ simpl. unfold repr. simpl. rewrite Heqwx. rewrite Heqwy. subst. unfold repr in H1. simpl in H1. apply H1.
+    - destruct ( z =? x ) eqn:Heqzx.
+      (* z == x*)
+      + simpl. destruct ( z =? y) eqn:Heqzy.
+        (* z == y*)
+        ++ unfold repr. simpl. rewrite Heqzx. rewrite Heqzy. reflexivity.
+        (* z != y && z == x *)
+        ++ simpl. rewrite H1 in H2. apply beq_correct in Heqzx. subst. rewrite H2 in H1. rewrite H1 in Heqz. discriminate.
+      (* z != x *)
+      + simpl. destruct ( z =? y) eqn:Heqzy.
+        (* z == y && z != x *)
+        ++ rewrite beq_correct in Heqzy. subst. rewrite H1 in H2. rewrite H2 in Heqz. discriminate.
+        (* z != y && z != x *)
+        ++ simpl. unfold repr. simpl. rewrite Heqzx. rewrite Heqzy. subst. unfold repr in H1. simpl in H1. apply H1.
+    - destruct ( z =? x ) eqn:Heqzx.
+      (* z == x*)
+      + simpl. destruct ( z =? y) eqn:Heqzy.
+        (* z == y*)
+        ++ unfold repr. simpl. rewrite Heqzx. rewrite Heqzy. reflexivity.
+        (* z != y && z == x *)
+        ++ simpl. rewrite H1 in H2. apply beq_correct in Heqzx. subst. rewrite H2 in H1. rewrite H1 in Heqz. discriminate.
+      (* z != x *)
+      + simpl. destruct ( z =? y) eqn:Heqzy.
+        (* z == y && z != x *)
+        ++ rewrite beq_correct in Heqzy. subst. rewrite H1 in H2. rewrite H2 in Heqz. discriminate.
+        (* z != y && z != x *)
+        ++ simpl. unfold repr. simpl. rewrite Heqzx. rewrite Heqzy. subst. unfold repr in H1. simpl in H1. apply H1.
+  Admitted.
 
   Lemma un: forall axms x y z w,
     equiv (make_graph axms) x y = true -> equiv (make_graph ((z, w) :: axms)) x y = true.
