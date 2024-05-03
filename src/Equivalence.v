@@ -85,8 +85,8 @@ Proof.
        * right. right. destruct H0. split; assumption.
        * right. left. destruct H0. split; assumption.
    - destruct IHeq1, IHeq2.
-       + left. apply eq_trans with (y:=y); assumption.
-       + admit.
-       + admit.
-       + admit.
-Admitted.
+       + eauto using eq_trans, eq_sym.
+       + destruct H2; destruct H2; right; [left | right];  eauto using eq_trans, eq_sym.
+       + destruct H1; destruct H1; eauto using eq_trans, eq_sym.
+       + destruct H1, H2; destruct H1, H2;  eauto using eq_trans, eq_sym.    
+Qed.
