@@ -35,12 +35,12 @@ Proof.
   - intros. subst. apply eq_refl.
 Qed.
 
-Lemma eq_nonempty': forall {A} (x y z: A) (axms: list (A * A)),
-   ((eq axms x z) \/ (eq axms y z)) -> ((eq ((x, y) :: axms) x z) /\ (eq ((x, y) :: axms) y z)).
+Lemma eq_nonempty: forall {A} (x y z w: A) (axms: list (A * A)),
+   eq ((z, w) :: axms) x y <-> ((eq axms x y) \/ ((eq axms z x) /\ (eq axms w y))).
 Proof.
 Admitted.
 
-Lemma eq_nonempty: forall {A} (x y z w: A) (axms: list (A * A)),
-   ((eq axms x z) \/ (eq axms y z)) -> ((eq ((z, w) :: axms) x z) /\  (eq ((z, w) :: axms) y w)).
+Lemma eq_mono: forall {A} (x y: A) (axms: list (A * A)) (a: A),
+   (eq axms x y) -> (eq ((x, a) :: axms) x a).
 Proof.
 Admitted.
