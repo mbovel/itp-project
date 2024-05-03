@@ -278,6 +278,11 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     let ds' := (ensure_repr (ensure_repr ds xr) yr) in
     (replace_values ds' yr xr).
 
+  Lemma union_mono: forall ds x y w z,
+    equiv ds x y = true -> equiv (union ds w z) x y = true.
+  Proof.
+  Admitted.
+
   Lemma union_correct_1: forall ds x xr y yr,
     (get ds x) = Some xr ->
     (get ds y) = Some yr ->
@@ -323,12 +328,6 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     apply union_correct_1; assumption.
   Qed.
 
-  Lemma union_mono: forall ds x y w z,
-    equiv ds x y = true -> equiv (union ds w z) x y = true.
-  Proof.
-    intros.
-  Admitted.
-
   Fixpoint make_graph (axms: list (A * A)) : D :=
     match axms with
     | [] => empty
@@ -344,15 +343,20 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       unfold make_graph, equiv, repr, empty, get.
       apply beq_refl.
     - destruct a as [z w].
-      apply eq_nonempty in H.
+      apply eq_nonempty_inverse in H.
       destruct H.
       + apply IHaxms in H.
         apply union_mono.
         assumption.
-      + destruct H as [H1 H2].
-        apply IHaxms in H1, H2.
-        apply union_correct; assumption.
-  Qed.
+      + destruct H.
+        * destruct H as [H1 H2].
+          apply IHaxms in H1, H2.
+          apply union_correct; assumption.
+        * destruct H as [H1 H2].
+          apply IHaxms in H1, H2.
+          apply union_correct; fold make_graph.
+          admit.
+  Admitted.
       
   Lemma make_correct_right: forall axms x y,
     equiv (make_graph axms) x y = true -> eq axms x y.
@@ -363,9 +367,8 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       rewrite beq_correct in H.
       assumption.
     - destruct a as [z w].
-      apply eq_nonempty.
       simpl in H.
-      destruct H.
+      admit.
   Admitted.
 
   Theorem make_correct: forall axms x y,

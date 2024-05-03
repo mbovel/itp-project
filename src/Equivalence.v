@@ -35,12 +35,58 @@ Proof.
   - intros. subst. apply eq_refl.
 Qed.
 
-Lemma eq_nonempty: forall {A} (x y z w: A) (axms: list (A * A)),
-   eq ((z, w) :: axms) x y <-> ((eq axms x y) \/ ((eq axms z x) /\ (eq axms w y))).
+Lemma eq_mono: forall {A} (x y w z: A) (axms: list (A * A)) (a: A),
+   (eq axms x y)
+   -> (eq ((w, z) :: axms) x y).
 Proof.
 Admitted.
 
-Lemma eq_mono: forall {A} (x y: A) (axms: list (A * A)) (a: A),
-   (eq axms x y) -> (eq ((x, a) :: axms) x a).
+Lemma eq_join: forall {A} (x x' y y': A) (axms: list (A * A)) (a: A),
+   (eq axms x x') ->
+   (eq axms y y') ->
+   (eq ((x, y) :: axms) x' y').
 Proof.
+Admitted.
+
+Lemma eq_nonempty: forall {A} (x y z w: A) (axms: list (A * A)),
+   (
+     (eq axms x y)
+     \/ (eq axms z x /\ eq axms w y)
+     \/ (eq axms w x /\ eq axms z y)
+   )
+   -> eq ((z, w) :: axms) x y.
+Proof.
+   intros.
+   destruct H.
+   - apply eq_mono; assumption.
+   - destruct H.
+     + destruct H. apply eq_join; assumption.
+     + apply eq_sym. destruct H. apply eq_join; assumption.
+Qed.
+
+Lemma eq_nonempty_inverse: forall {A} (x y z w: A) (axms: list (A * A)),
+   eq ((z, w) :: axms) x y
+   -> (
+     (eq axms x y)
+     \/ (eq axms z x /\ eq axms w y)
+     \/ (eq axms w x /\ eq axms z y)
+   ).
+Proof.
+   intros.
+   induction H.
+   - destruct H.
+     + injection H. intros. subst. clear H.
+       right. left. split; apply eq_refl.
+     + left. apply eq_axms. simpl. assumption.
+   - left. apply eq_refl.
+   - destruct IHeq.
+     + left. apply eq_sym. assumption.
+     + destruct H0.
+       * right. right. destruct H0. split; assumption.
+       * right. left. destruct H0. split; assumption.
+   - destruct IHeq1, IHeq2.
+       + left. apply eq_trans with (y:=y); assumption.
+       + admit.
+       + admit.
+       + admit.
 Admitted.
