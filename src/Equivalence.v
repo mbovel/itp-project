@@ -51,8 +51,8 @@ Admitted.
 Lemma eq_nonempty: forall {A} (x y z w: A) (axms: list (A * A)),
    (
      (eq axms x y)
-     \/ (eq axms z x /\ eq axms w y)
-     \/ (eq axms w x /\ eq axms z y)
+     \/ (eq axms x z /\ eq axms y w)
+     \/ (eq axms x w /\ eq axms y z)
    )
    -> eq ((z, w) :: axms) x y.
 Proof.
@@ -60,8 +60,8 @@ Proof.
    destruct H.
    - apply eq_mono; assumption.
    - destruct H.
-     + destruct H. apply eq_join; assumption.
-     + apply eq_sym. destruct H. apply eq_join; assumption.
+     + destruct H. auto using eq_join, eq_sym.
+     + apply eq_sym. destruct H. auto using eq_join, eq_sym.
 Qed.
 
 Lemma eq_nonempty_inverse: forall {A} (x y z w: A) (axms: list (A * A)),
@@ -85,8 +85,8 @@ Proof.
        * right. right. destruct H0. split; assumption.
        * right. left. destruct H0. split; assumption.
    - destruct IHeq1, IHeq2.
-       + left. apply eq_trans with (y:=y); assumption.
-       + admit.
-       + admit.
-       + admit.
-Admitted.
+       + eauto using eq_trans, eq_sym.
+       + destruct H2; destruct H2; right; [left | right];  eauto using eq_trans, eq_sym.
+       + destruct H1; destruct H1; eauto using eq_trans, eq_sym.
+       + destruct H1, H2; destruct H1, H2;  eauto using eq_trans, eq_sym.    
+Qed.
