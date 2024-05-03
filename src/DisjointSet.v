@@ -161,7 +161,8 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
   Qed.
 
   Lemma replace_values_correct_neq: forall ds k v v1 v2,
-    get ds k = Some v -> v <> v1 ->
+    get ds k = Some v ->
+    v <> v1 ->
     get (replace_values ds v1 v2) k = Some v.
   Proof.
     induction ds.
@@ -271,6 +272,14 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     unfold equiv.
     destruct (get ds x) eqn:Heq; apply beq_correct; reflexivity.
   Qed.
+
+  Lemma get_repr: forall ds x rx,
+    get ds x = Some rx -> repr ds x = rx.
+  Proof.
+    intros.
+    unfold repr.
+    rewrite H. reflexivity.
+  Qed.
   
   Definition union (ds: D) (x y: A) : D :=
     let xr := (repr ds x) in
@@ -357,6 +366,34 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
           apply union_correct; fold make_graph.
           admit.
   Admitted.
+
+  Lemma union_repr_1: forall ds x z w,
+    equiv ds x z = false ->
+    equiv ds x w = false ->
+    repr (union ds z w) x = repr ds x.
+  Proof.
+    intros.
+    unfold equiv in H, H0. rewrite nbeq_correct in H, H0.
+    unfold union.
+    destruct (get ds w) eqn:Hw, (get ds z) eqn:Hz.
+    - pose proof (union_correct_1 ds w a z a0 Hw Hz) as H1.
+      apply get_repr in Hw, Hz.
+      subst.
+      unfold equiv in H1. rewrite beq_correct in H1.
+      admit.
+  Admitted.
+
+  Lemma union_repr_2: forall ds x z w,
+    equiv ds x z = true ->
+    repr (union ds z w) x = repr ds w.
+  Proof.
+  Admitted.
+
+  Lemma union_repr_3: forall ds x z w,
+    equiv ds x w = true ->
+    repr (union ds z w) x = repr ds z.
+  Proof.
+  Admitted.
       
   Lemma make_correct_right: forall axms x y,
     equiv (make_graph axms) x y = true -> eq axms x y.
@@ -368,9 +405,39 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       assumption.
     - destruct a as [z w].
       simpl in H.
-      admit.
+      apply eq_nonempty.
+      destruct (equiv (make_graph axms) x y) eqn:Hxy.
+      + left. apply IHaxms. assumption.
+      + right.
+        remember (make_graph axms) as ds.
+        destruct 
+          (equiv ds x z) eqn:Hxz,
+          (equiv ds x w) eqn:Hxw,
+          (equiv ds y z) eqn:Hyz,
+          (equiv ds y w) eqn:Hyw.
+        * apply IHaxms in Hxz, Hxw, Hyz, Hyw. eauto using eq_sym.
+        * apply IHaxms in Hxz, Hxw, Hyz. eauto using eq_sym.
+        * apply IHaxms in Hxz, Hxw, Hyw. eauto using eq_sym.
+        * pose proof (union_repr_1 ds y z w Hyz Hyw) as H1.
+          pose proof (union_repr_2 ds x z w Hxz) as H2.
+          unfold equiv in H. rewrite beq_correct in H.
+          apply IHaxms in Hxz, Hxw.
+          unfold equiv in Hxy, Hyz, Hyw. rewrite nbeq_correct in Hxy, Hyz, Hyw.
+          congruence.
+        * admit.
+        * admit.
+        * admit.
+        * admit.
+        * admit.
+        * admit.
+        * admit.
+        * admit.
+        * admit.
+        * admit.
+        * admit.
+        * admit.
   Admitted.
-
+  
   Theorem make_correct: forall axms x y,
     eq axms x y <-> equiv (make_graph axms) x y = true.
   Proof.
