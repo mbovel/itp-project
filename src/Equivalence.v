@@ -39,6 +39,7 @@ Lemma eq_mono: forall {A} (x y w z: A) (axms: list (A * A)) (a: A),
    (eq axms x y)
    -> (eq ((w, z) :: axms) x y).
 Proof.
+   (* TODO(Sam) *)
 Admitted.
 
 Lemma eq_join: forall {A} (x x' y y': A) (axms: list (A * A)) (a: A),
@@ -46,6 +47,7 @@ Lemma eq_join: forall {A} (x x' y y': A) (axms: list (A * A)) (a: A),
    (eq axms y y') ->
    (eq ((x, y) :: axms) x' y').
 Proof.
+   (* TODO(Matt) *)
 Admitted.
 
 Lemma eq_nonempty: forall {A} (x y z w: A) (axms: list (A * A)),

@@ -290,6 +290,7 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
   Lemma union_mono: forall ds x y w z,
     equiv ds x y = true -> equiv (union ds w z) x y = true.
   Proof.
+    (* TODO(Sam) *)
   Admitted.
 
   Lemma union_correct_1: forall ds x xr y yr,
@@ -364,6 +365,8 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
         * destruct H as [H1 H2].
           apply IHaxms in H1, H2.
           apply union_correct; fold make_graph.
+          (* Will need to prove that union(a,b) is equivalent to union(b,a)*)
+          (* TODO(Sam) *)
           admit.
   Admitted.
 
@@ -381,18 +384,21 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       subst.
       unfold equiv in H1. rewrite beq_correct in H1.
       admit.
+      (* TODO(Matt) *)
   Admitted.
 
   Lemma union_repr_2: forall ds x z w,
     equiv ds x z = true ->
     repr (union ds z w) x = repr ds w.
   Proof.
+    (* TODO(Matt) *)
   Admitted.
 
   Lemma union_repr_3: forall ds x z w,
     equiv ds x w = true ->
     repr (union ds z w) x = repr ds w.
   Proof.
+    (* TODO(Matt) *)
   Admitted.
       
   Lemma make_correct_right: forall axms x y,
@@ -422,8 +428,10 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
           pose proof (union_repr_2 ds x z w Hxz) as H2.
           unfold equiv in H. rewrite beq_correct in H.
           apply IHaxms in Hxz, Hxw.
-          unfold equiv in Hxy, Hyz, Hyw. rewrite nbeq_correct in Hxy, Hyz, Hyw.
+          unfold equiv in Hxy, Hyz, Hyw.
+          rewrite nbeq_correct in Hxy, Hyz, Hyw.
           congruence.
+        * (* TODO(Matt) *)
         * admit.
         * admit.
         * admit.
