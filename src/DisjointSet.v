@@ -179,6 +179,20 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       + apply IHds; assumption.
   Qed.
 
+  Lemma replace_values_correct_neq_none: forall ds k v1 v2,
+    get ds k = None ->
+    get (replace_values ds v1 v2) k = None.
+  Proof.
+    induction ds.
+    - intros. simpl. congruence.
+    - destruct a as [k0 v0].
+      intros.
+      simpl in *.
+      destruct (k =? k0) eqn:Hk.
+      + discriminate.
+      + apply IHds. assumption.
+  Qed.
+
   Definition repr (ds: D) (x: A) : A :=
     match get ds x with
     | Some y => y
@@ -227,6 +241,19 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     - simpl.
       destruct (x =? y) eqn:Heqxy.
       + apply beq_correct in Heqxy. subst. rewrite H in Heq. discriminate.
+      + assumption.
+  Qed.
+
+  Lemma ensure_repr_mono_none: forall ds x y,
+    get ds x = None -> x <> y -> get (ensure_repr ds y) x = None.
+  Proof.
+    intros.
+    unfold ensure_repr.
+    destruct (get ds y) eqn:Heq.
+    - assumption.
+    - simpl.
+      destruct (x =? y) eqn:Heqxy.
+      + apply beq_correct in Heqxy. subst. rewrite H in Heq. contradiction.
       + assumption.
   Qed.
 
@@ -287,11 +314,64 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     let ds' := (ensure_repr (ensure_repr ds xr) yr) in
     (replace_values ds' yr xr).
 
-  Lemma union_mono: forall ds x y w z,
-    equiv ds x y = true -> equiv (union ds w z) x y = true.
+
+  Lemma beq_correct_false: forall x y,
+    x =? y = false <-> x <> y.
+    Proof.
+      intros. split; intros.
+      - intros H1. apply beq_correct in H1. rewrite H1 in H. discriminate.
+      - destruct (x =? y) eqn:Heq.
+        + apply beq_correct in Heq. contradiction.
+        + reflexivity.
+    Qed.
+
+  Lemma union_different_same_repr: forall ds x y z,
+    repr ds z <> repr ds y -> repr (union ds x y) z = repr ds z.
   Proof.
-    (* TODO(Sam) *)
-  Admitted.
+    intros.
+    unfold union.
+    remember (ensure_repr (ensure_repr ds (repr ds x)) (repr ds y)) as ds'.
+    remember (repr ds y) as yr.
+    remember (repr ds x) as xr.
+    remember (repr ds z) as zr.
+    pose proof Heqzr.
+    unfold repr in Heqzr. remember (get ds z) as gdsz.
+    destruct gdsz as [zr' |].
+    - unfold repr. remember (get (replace_values ds' yr xr) z) as h12. destruct h12 as [h12' |].
+      + rewrite replace_values_correct_neq with (ds := ds') (v := zr') in Heqh12.
+        ++ congruence.
+        ++ (* Here need to prove that get ds z = get ds' z  with ds' being with the ensure_repr *)
+        rewrite Heqds'.  
+        rewrite (ensure_repr_mono (ensure_repr ds xr) z zr' yr); try congruence.
+        apply (ensure_repr_mono ds z zr' xr). congruence.
+        ++ congruence.
+      + (* Here it is a contradition because  None = get (replace_values ds' yr xr) z cannot happen if Some zr' = get ds z *)
+      rewrite replace_values_correct_neq with (ds := ds') (v := zr') in Heqh12.
+        ++ congruence.
+        ++  rewrite Heqds'.  
+            rewrite (ensure_repr_mono (ensure_repr ds xr) z zr' yr); try congruence.
+            apply (ensure_repr_mono ds z zr' xr). congruence.
+        ++ congruence.
+    - unfold repr. remember (get (replace_values ds' yr xr) z) as h12. destruct h12 as [h12' |].
+      + (* here contradiction because it cannot be defined now or z = xr *)
+      destruct (xr =? z) eqn:Heq. 
+      ++ rewrite beq_correct in Heq. 
+        rewrite replace_values_correct_neq with (ds := ds') (v := zr) in Heqh12.
+        +++ congruence.
+        +++ rewrite Heqds'.  
+            rewrite (ensure_repr_mono (ensure_repr ds xr) z xr); try congruence. 
+            rewrite Heq. apply ensure_repr_get. congruence.
+        +++ congruence.
+      ++ rewrite beq_correct_false in Heq. 
+        rewrite replace_values_correct_neq_none with (ds := ds') in Heqh12.
+        +++ congruence.
+        +++ rewrite Heqds'.  
+            rewrite (ensure_repr_mono_none (ensure_repr ds xr) z ).
+            ++++ congruence.
+            ++++  rewrite (ensure_repr_mono_none ds z ); congruence.
+            ++++ congruence.
+      + congruence.
+  Qed.
 
   Lemma union_correct_1: forall ds x xr y yr,
     (get ds x) = Some xr ->
@@ -312,7 +392,7 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       rewrite H2. reflexivity.
   Qed.
 
-  Theorem union_correct : forall ds x x' y y',
+  Theorem union_correct: forall ds x x' y y',
     (equiv ds x x' = true) ->
     (equiv ds y y' = true) ->
     (equiv (union ds x y) x' y' = true).
@@ -336,6 +416,66 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     clear H0 H3.
 
     apply union_correct_1; assumption.
+  Qed.
+
+  Lemma union_mono: forall ds x y w z,
+    equiv ds x y = true -> equiv (union ds w z) x y = true.
+  Proof.
+    intros. 
+    unfold equiv in *. 
+    apply beq_correct. rewrite beq_correct in H. 
+    remember (repr ds y) as yr.
+    remember (repr ds x) as xr.
+    remember (repr ds z) as zr.
+    remember (repr ds w) as wr.
+    destruct (xr =? zr) eqn:Heq.
+    + (* In this case, the representant of x and y will change to become wr, but still the same *)
+    apply beq_correct in Heq.
+    assert (equiv ds x y = true); try unfold equiv; try rewrite beq_correct; try congruence.
+    assert (equiv ds x z = true); try unfold equiv; try rewrite beq_correct; try congruence.
+    assert (equiv ds y z = true); try unfold equiv; try rewrite beq_correct; try congruence.
+    assert (equiv ds z y = true); try unfold equiv; try rewrite beq_correct; try congruence.
+
+  
+    assert (equiv ds z z = true); try unfold equiv; try rewrite beq_correct; try congruence.
+    assert (equiv ds w w = true); try unfold equiv; try rewrite beq_correct; try congruence.
+    assert (equiv ds z x = true); try unfold equiv; try rewrite beq_correct; try congruence.
+
+    pose proof (union_correct ds w w z x). 
+    rewrite H5 in H7. rewrite H6 in H7.
+    specialize (H7 (reflexivity _) (reflexivity _)).
+    pose proof (union_correct ds w w z y). 
+    rewrite H5 in H8. rewrite H3 in H8.
+    specialize (H8 (reflexivity _) (reflexivity _)).
+    unfold equiv in H7, H8. rewrite beq_correct in H7, H8. congruence.
+
+    (* Uneeded case analysis on xr =? wr, kept as reference *)
+    (* destruct (xr =? wr) eqn:Heqxrwr.
+    - apply beq_correct in Heqxrwr.
+      assert (equiv ds w x = true); try unfold equiv; try rewrite beq_correct; try congruence.
+      pose proof (union_correct ds  w x z y).
+      rewrite H4 in H5. rewrite H3 in H5. 
+      specialize (H5 (reflexivity _) (reflexivity _)).
+      unfold equiv in H5. rewrite beq_correct in H5. congruence.
+    - rewrite beq_correct_false in Heqxrwr. 
+      assert (equiv ds x w = false); try unfold equiv; try rewrite beq_correct_false; try congruence.
+      assert (equiv ds w x = false); try unfold equiv; try rewrite beq_correct_false; try congruence.
+      assert (equiv ds z z = true); try unfold equiv; try rewrite beq_correct; try congruence.
+      assert (equiv ds w w = true); try unfold equiv; try rewrite beq_correct; try congruence.
+      assert (equiv ds z x = true); try unfold equiv; try rewrite beq_correct; try congruence.
+      pose proof (union_correct ds w w z x). 
+      rewrite H7 in H9. rewrite H8 in H9.
+      specialize (H9 (reflexivity _) (reflexivity _)).
+      pose proof (union_correct ds w w z y). 
+      rewrite H7 in H10. rewrite H3 in H10.
+      specialize (H10 (reflexivity _) (reflexivity _)).
+      unfold equiv in H9, H10. rewrite beq_correct in H9, H10. congruence. *)
+
+    + (* In this case, the representant of x and y will not change *)
+      apply beq_correct_false in Heq.
+      rewrite (union_different_same_repr ds w z x); try congruence.
+      ++ rewrite (union_different_same_repr ds w z y); congruence.
+
   Qed.
 
   Fixpoint make_graph (axms: list (A * A)) : D :=
