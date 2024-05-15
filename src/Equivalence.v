@@ -39,8 +39,14 @@ Lemma eq_mono: forall {A} (x y w z: A) (axms: list (A * A)) (a: A),
    (eq axms x y)
    -> (eq ((w, z) :: axms) x y).
 Proof.
-   (* TODO(Sam) *)
-Admitted.
+   intros.
+   induction H.
+   - apply eq_axms. simpl. right. assumption.
+   - apply eq_refl.
+   - apply eq_sym. assumption.
+   - pose proof (eq_trans ((w, z) :: axms) x y z0 IHeq1 IHeq2).
+     assumption.
+Qed.
 
 Lemma eq_join: forall {A} (x x' y y': A) (axms: list (A * A)) (a: A),
    (eq axms x x') ->
