@@ -504,11 +504,19 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
           apply union_correct; assumption.
         * destruct H as [H1 H2].
           apply IHaxms in H1, H2.
-          apply union_correct; fold make_graph.
-          (* Will need to prove that union(a,b) is equivalent to union(b,a)*)
-          (* TODO(Sam) *)
-          admit.
-  Admitted.
+          unfold make_graph. fold make_graph.
+          assert (equiv (make_graph axms) x w = true) as Heqxw; unfold equiv; rewrite beq_correct; unfold equiv in H1; rewrite beq_correct in H1; try congruence.
+          assert (equiv (make_graph axms) y z = true) as Heqyz; unfold equiv; try rewrite beq_correct; unfold equiv in H2; rewrite beq_correct in H2; try congruence.
+          pose proof (union_mono (make_graph axms) x w z w Heqxw).
+          pose proof (union_mono (make_graph axms) y z z w Heqyz).
+          assert (equiv (make_graph axms) w x = true) as Heqwx; unfold equiv; try rewrite beq_correct; try congruence.
+          assert (equiv (make_graph axms) z y = true) as Heqzy; unfold equiv; try rewrite beq_correct; try congruence.
+          pose proof (union_correct (make_graph axms) z y w x Heqzy Heqwx).
+          unfold equiv in H3.
+          rewrite beq_correct in H3.
+          congruence.
+          (* Will need to prove that union(a,b) is equivalent to union(b,a) -> Nope haha *)
+  Qed.
 
   Lemma union_repr_1: forall ds x z w,
     equiv ds x z = false ->
@@ -571,8 +579,7 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
           unfold equiv in Hxy, Hyz, Hyw.
           rewrite nbeq_correct in Hxy, Hyz, Hyw.
           congruence.
-        * (* TODO(Matt) *)
-        * admit.
+        * admit. (* TODO(Matt) *)
         * admit.
         * admit.
         * admit.
