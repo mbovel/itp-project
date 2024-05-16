@@ -125,7 +125,7 @@ Coq                              2             68             39            596
 
 Almost finished the disjoint-set implementation and proof.
 
-## Next steps
+## Next steps
 
 Finish the disjoint-set proof.
 
