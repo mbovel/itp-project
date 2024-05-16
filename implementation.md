@@ -92,8 +92,43 @@ which proves that `union` indeed merges equivalence classes.
 
 **Case 3**: we add an axiom `(z, w)` and before `eq axms w x` and `eq axms z y`.
 
-Basically prove that it's okay to swap `z` and  `w` in the axiom pair.
+Basically prove that it's okay to swap `z` and  `w` in the axiom pair using `union_mono` and `union_correct`.
 
 ### Implementation implies theory
 
 https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L552-L554
+
+**Main idea:** similar to the previous theorem, we use backward cases analysis to decompose the goal into smaller goals, in the other direction.
+
+https://github.com/mbovel/itp-project/blob/7aa2767baa50a1303f9c5a28f7d697b1ae24c0d7/src/Equivalence.v#L75-L82
+
+Then we proceed brutally by analysing all possible cases:
+
+https://github.com/mbovel/itp-project/blob/7aa2767baa50a1303f9c5a28f7d697b1ae24c0d7/src/DisjointSet.v#L567-L571
+
+Three lemmas to help:
+
+https://github.com/mbovel/itp-project/blob/7aa2767baa50a1303f9c5a28f7d697b1ae24c0d7/src/DisjointSet.v#L521-L525
+
+https://github.com/mbovel/itp-project/blob/7aa2767baa50a1303f9c5a28f7d697b1ae24c0d7/src/DisjointSet.v#L538-L541
+
+https://github.com/mbovel/itp-project/blob/7aa2767baa50a1303f9c5a28f7d697b1ae24c0d7/src/DisjointSet.v#L545-L548
+
+## Current state
+
+```
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+Coq                              2             68             39            596
+```
+
+Almost finished the disjoint-set implementation and proof.
+
+## Next steps
+
+Finish the disjoint-set proof.
+
+Still hope to include some more, about congruence closure and normalization.
+
+:)
