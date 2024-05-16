@@ -67,9 +67,32 @@ Main theorem:
 
 https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L596-L602
 
-## Theory implies implementation
+
+Both are proved by induction on the axioms list.
+
+### Theory implies implementation
 
 https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L487-L489
+
+How can make use of the induction hypothesis?
+
+**Main idea:** backward cases analysis theorem to decompose the goal into smaller goals:
+
+https://github.com/mbovel/itp-project/blob/19bc79277f4c91179d64c95a583306273d02a790/src/Equivalence.v#L75-L82
+
+**Case 1**: `x` already equal to `y` before adding the new axiom.
+
+https://github.com/mbovel/itp-project/blob/19bc79277f4c91179d64c95a583306273d02a790/src/DisjointSet.v#L421-L423
+
+**Case 2**: we add an axiom `(z, w)` and before `eq axms z x` and `eq axms w y`.
+
+https://github.com/mbovel/itp-project/blob/19bc79277f4c91179d64c95a583306273d02a790/src/DisjointSet.v#L376-L380
+
+which proves that `union` indeed merges equivalence classes.
+
+**Case 3**: we add an axiom `(z, w)` and before `eq axms w x` and `eq axms z y`.
+
+Basically prove that it's okay to swap `z` and  `w` in the axiom pair.
 
 ### Implementation implies theory
 
