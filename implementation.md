@@ -46,14 +46,31 @@ Then came back to modules:
 
 https://github.com/mbovel/itp-project/blob/0345f50283ee9a9fe85e6d399b44540ea1361887/src/DisjointSet.v#L10-L35
 
-## Top-level proof walkthrough
+
+## Implementation
+
+https://github.com/mbovel/itp-project/blob/e59ff114b69002f4d00e14c2cc81f53cf734748a/src/DisjointSet.v#L82-L89
+
+https://github.com/mbovel/itp-project/blob/e59ff114b69002f4d00e14c2cc81f53cf734748a/src/DisjointSet.v#L130-L134
+
+https://github.com/mbovel/itp-project/blob/e59ff114b69002f4d00e14c2cc81f53cf734748a/src/DisjointSet.v#L196-L200
+
+https://github.com/mbovel/itp-project/blob/e59ff114b69002f4d00e14c2cc81f53cf734748a/src/DisjointSet.v#L202-L207
+
+https://github.com/mbovel/itp-project/blob/e59ff114b69002f4d00e14c2cc81f53cf734748a/src/DisjointSet.v#L292-L293
+
+https://github.com/mbovel/itp-project/blob/e59ff114b69002f4d00e14c2cc81f53cf734748a/src/DisjointSet.v#L311-L315
+
+## Top-down proof walkthrough
+
+Main theorem:
 
 https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L596-L602
 
-### Left to right: theory implies implementation
-
-https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L552-L554
-
-## Right to left: implementation implies theory
+## Theory implies implementation
 
 https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L487-L489
+
+### Implementation implies theory
+
+https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L552-L554
