@@ -22,9 +22,17 @@ class DisjointSet[A](val parents: Map[A, A] = Map.empty[A, A])
 
 We implemented 1., 2. and 4. in Scala.
 
-In Coq, we tried 3. first, but it was too cumbersome to work with. We then switched to 4. and it is still cumbersome.
+In Coq, we tried 3 first, but it was too cumbersome to work with:
+
+https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L39-L41
+
+We then switched to 4. Still cumbersome, but we managed to make progress :)
+
+https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L81-L83
 
 ## Coq structure
+
+Let's take a step back and look at the structure of our Coq project.
 
 Equality axiomatisation:
 
@@ -38,155 +46,14 @@ Then came back to modules:
 
 https://github.com/mbovel/itp-project/blob/0345f50283ee9a9fe85e6d399b44540ea1361887/src/DisjointSet.v#L10-L35
 
-## Main theorem
+## Top-level proof walkthrough
 
-```mermaid
-graph TD
+https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L596-L602
 
-  %% Define the nodes
-  A[BOOL_EQ]
-  B[DISJOINT_SET]
-  C[StringBoolEq]
-  D[DisjointSetListList]
-  E[DisjointSetListPair]
-  F[beq_correct]
-  G[make_graph]
-  H[make_correct]
-  I[union]
-  J[equiv]
-  K[get]
-  L[is_map]
-  M[get_in]
-  N[beq_refl]
-  O[in_get]
-  P[list_beq]
-  Q[replace_values]
-  R[repr]
-  S[ensure_repr]
-  T[ensure_repr_exists]
-  U[repr_head]
-  V[ensure_repr_mono]
-  W[ensure_repr_mono_none]
-  X[ensure_repr_preserve]
-  Y[ensure_repr_get]
-  Z[ensure_repr_get_2]
-  AA[union_different_same_repr]
-  AB[replace_values_correct]
-  AC[replace_values_correct_neq]
-  AD[replace_values_correct_neq_none]
-  AE[union_correct_1]
-  AF[union_correct]
-  AG[union_mono]
-  AH[union_repr_1]
-  AI[union_repr_2]
-  AJ[union_repr_3]
-  AK[make_correct_left]
-  AL[make_correct_right]
-  
-  %% Define the edges
-  B --> A
-  C --> A
-  D --> B
-  E --> B
-  H --> F
-  H --> G
-  H --> J
-  H --> I
-  I --> Q
-  I --> R
-  J --> R
-  M --> K
-  O --> L
-  O --> K
-  V --> S
-  W --> S
-  X --> S
-  Y --> S
-  Z --> S
-  AA --> I
-  AE --> I
-  AF --> I
-  AG --> I
-  AH --> I
-  AI --> I
-  AJ --> I
-  AK --> J
-  AL --> J
-  AD --> Q
-  AB --> Q
-  AC --> Q
+### Left to right: theory implies implementation
 
-  K --> R
-  M --> R
-  N --> R
-  P --> R
+https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L552-L554
 
-  Q --> AB
-  Q --> AC
-  Q --> AD
+## Right to left: implementation implies theory
 
-  S --> T
-  S --> U
-  S --> V
-  S --> W
-  S --> X
-  S --> Y
-  S --> Z
-
-  %% Labels for the primary components
-  subgraph "BOOL_EQ Module"
-    A
-    C
-  end
-
-  subgraph "DISJOINT_SET Module"
-    B
-    D
-    E
-  end
-
-  subgraph "StringBoolEq"
-    C
-  end
-
-  subgraph "DisjointSetListList"
-    D
-    P
-  end
-
-  subgraph "DisjointSetListPair"
-    E
-    F
-    G
-    H
-    I
-    J
-    K
-    L
-    M
-    N
-    O
-    Q
-    R
-    S
-    T
-    U
-    V
-    W
-    X
-    Y
-    Z
-    AA
-    AB
-    AC
-    AD
-    AE
-    AF
-    AG
-    AH
-    AI
-    AJ
-    AK
-    AL
-  end
-```
+https://github.com/mbovel/itp-project/blob/2ae3a5bbb5bbe0a32ce586120b9711f65079082a/src/DisjointSet.v#L487-L489
