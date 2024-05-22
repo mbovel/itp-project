@@ -51,10 +51,15 @@ Qed.
 Lemma eq_join: forall {A} (x x' y y': A) (axms: list (A * A)) (a: A),
    (eq axms x x') ->
    (eq axms y y') ->
-   (eq ((x, y) :: axms) x' y').
+   (eq ((x', y') :: axms) x y).
 Proof.
-   (* TODO(Matt) *)
-Admitted.
+   intros.
+   apply eq_trans with (y := x').
+   - apply eq_mono; assumption.
+   - apply eq_trans with (y := y').
+     + apply eq_axms. unfold In. left. reflexivity.
+     + apply eq_sym. apply eq_mono; assumption.
+Qed.
 
 Lemma eq_nonempty: forall {A} (x y z w: A) (axms: list (A * A)),
    (
