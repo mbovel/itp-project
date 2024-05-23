@@ -327,52 +327,24 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       + reflexivity.
   Qed.
 
+  Ltac name_term term name :=
+    pose term as name;
+    change term with name.
+
   Lemma union_different_same_repr: forall ds x y z,
     repr ds z <> repr ds y -> repr (union ds x y) z = repr ds z.
   Proof.
     intros.
     unfold union.
-    remember (ensure_repr (ensure_repr ds (repr ds x)) (repr ds y)) as ds'.
-    remember (repr ds y) as yr.
-    remember (repr ds x) as xr.
-    remember (repr ds z) as zr.
-    pose proof Heqzr.
-    unfold repr in Heqzr. remember (get ds z) as gdsz.
-    destruct gdsz as [zr' |].
-    - unfold repr. remember (get (replace_values ds' yr xr) z) as h12. destruct h12 as [h12' |].
-      + rewrite replace_values_correct_neq with (ds := ds') (v := zr') in Heqh12.
-        ++ congruence.
-        ++ (* Here need to prove that get ds z = get ds' z  with ds' being with the ensure_repr *)
-        rewrite Heqds'.  
-        rewrite (ensure_repr_mono (ensure_repr ds xr) z zr' yr); try congruence.
-        apply (ensure_repr_mono ds z zr' xr). congruence.
-        ++ congruence.
-      + (* Here it is a contradition because  None = get (replace_values ds' yr xr) z cannot happen if Some zr' = get ds z *)
-      rewrite replace_values_correct_neq with (ds := ds') (v := zr') in Heqh12.
-        ++ congruence.
-        ++  rewrite Heqds'.  
-            rewrite (ensure_repr_mono (ensure_repr ds xr) z zr' yr); try congruence.
-            apply (ensure_repr_mono ds z zr' xr). congruence.
-        ++ congruence.
-    - unfold repr. remember (get (replace_values ds' yr xr) z) as h12. destruct h12 as [h12' |].
-      + (* here contradiction because it cannot be defined now or z = xr *)
-      destruct (xr =? z) eqn:Heq. 
-      ++ rewrite beq_correct in Heq. 
-        rewrite replace_values_correct_neq with (ds := ds') (v := zr) in Heqh12.
-        +++ congruence.
-        +++ rewrite Heqds'.  
-            rewrite (ensure_repr_mono (ensure_repr ds xr) z xr); try congruence. 
-            rewrite Heq. apply ensure_repr_get. congruence.
-        +++ congruence.
-      ++ rewrite beq_correct_false in Heq. 
-        rewrite replace_values_correct_neq_none with (ds := ds') in Heqh12.
-        +++ congruence.
-        +++ rewrite Heqds'.  
-            rewrite (ensure_repr_mono_none (ensure_repr ds xr) z ).
-            ++++ congruence.
-            ++++  rewrite (ensure_repr_mono_none ds z ); congruence.
-            ++++ congruence.
-      + congruence.
+    name_term (ensure_repr (ensure_repr ds (repr ds x)) (repr ds y)) ds'.
+    assert (repr ds' z = repr ds z). { eauto using ensure_repr_preserve. }
+    assert (repr ds' y = repr ds y). { eauto using ensure_repr_preserve. }
+    unfold repr at 1.
+    destruct (get ds' z) as [rz|] eqn:Hgetz.
+    - assert (repr ds z = rz). { apply get_repr in Hgetz. congruence. }
+      rewrite replace_values_correct_neq with (v := rz); congruence.
+    - assert (repr ds z = z). { rewrite <- H0. unfold repr. rewrite Hgetz. reflexivity. }
+      rewrite replace_values_correct_neq_none; congruence.
   Qed.
 
   Lemma union_correct_1: forall ds x xr y yr,
