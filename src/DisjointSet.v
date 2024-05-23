@@ -138,12 +138,18 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
   Lemma nbeq_correct: forall x y,
     x =? y = false <-> x <> y.
   Proof.
-    intros. split; intros.
-    - intros H1. apply beq_correct in H1. rewrite H1 in H. discriminate.
+    split; intros.
+    - intros H1. apply beq_correct in H1. congruence.
     - destruct (x =? y) eqn:Heq.
       + apply beq_correct in Heq. contradiction.
       + reflexivity.
   Qed.
+
+  Ltac beq_to_eq :=
+    match goal with
+    | [ H: ?x =? ?y = true |- _ ] => apply beq_correct in H
+    | [ H: ?x =? ?y = false |- _ ] => apply nbeq_correct in H
+    end.
 
   Lemma replace_values_correct: forall ds k v1 v2,
     get ds k = Some v1 ->
@@ -156,9 +162,9 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       simpl.
       destruct (k =? k0) eqn:Hk.
       + apply beq_correct in Hk. subst.
-        destruct (v0 =? v1) eqn:Hv.
-        * apply beq_correct in Hv. subst. reflexivity.
-        * apply nbeq_correct in Hv. simpl in H. rewrite beq_refl in H. congruence.
+        destruct (v0 =? v1) eqn:Hv; beq_to_eq.
+        * reflexivity.
+        * simpl in H. rewrite beq_refl in H. congruence.
       + simpl in H. rewrite Hk in H. apply IHds. assumption.
   Qed.
 
@@ -221,42 +227,24 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     repr ((x, y) :: ds) x = y.
   Proof. intros. unfold repr, get. rewrite beq_refl. reflexivity. Qed.
 
-  (*
-  Lemma ensure_repr_correct: forall ds x rx,
-    repr ds x = rx -> repr (ensure_repr ds x) x = rx.
-  Proof.
-    intros.
-    unfold ensure_repr.
-    destruct (get ds x) eqn:Heq.
-    - assumption.
-    - unfold repr in H. rewrite Heq in H. simpl in H. subst. apply repr_head.
-  Qed.
-  *)
-
   Lemma ensure_repr_mono: forall ds x rx y,
     get ds x = Some rx -> get (ensure_repr ds y) x = Some rx.
   Proof.
     intros.
     unfold ensure_repr.
-    destruct (get ds y) eqn:Heq.
+    destruct (get ds y) eqn:Hy; subst; simpl.
     - assumption.
-    - simpl.
-      destruct (x =? y) eqn:Heqxy.
-      + apply beq_correct in Heqxy. subst. rewrite H in Heq. discriminate.
-      + assumption.
+    - destruct (x =? y) eqn:Heqxy; beq_to_eq; congruence.
   Qed.
 
-  Lemma ensure_repr_mono_none: forall ds x y,
-    get ds x = None -> x <> y -> get (ensure_repr ds y) x = None.
+  Lemma ensure_repr_get: forall ds x rx,
+    repr ds x = rx -> get (ensure_repr ds rx) x = Some rx.
   Proof.
     intros.
-    unfold ensure_repr.
-    destruct (get ds y) eqn:Heq.
-    - assumption.
-    - simpl.
-      destruct (x =? y) eqn:Heqxy.
-      + apply beq_correct in Heqxy. subst. rewrite H in Heq. contradiction.
-      + assumption.
+    unfold repr in *.
+    destruct (get ds x) eqn:Hx; subst.
+    - auto using ensure_repr_mono.
+    - unfold ensure_repr. rewrite Hx. simpl. rewrite beq_refl. reflexivity.
   Qed.
 
   Lemma ensure_repr_preserve: forall ds x y rx,
@@ -266,31 +254,12 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     unfold ensure_repr.
     destruct (get ds y) eqn:Heq.
     - assumption.
-    - destruct (eq_dec x y).
-      + subst. rewrite repr_head. unfold repr. rewrite Heq. reflexivity.
-      + unfold repr, get. apply nbeq_correct in n. rewrite n. assumption.
+    - destruct (x =? y) eqn:Heqxy.
+      + beq_to_eq. subst. rewrite repr_head. unfold repr. rewrite Heq. reflexivity.
+      + unfold get, repr. simpl. rewrite Heqxy. assumption.
   Qed.
 
-  Lemma ensure_repr_get: forall ds x rx,
-    repr ds x = rx -> get (ensure_repr ds x) x = Some rx.
-  Proof.
-    intros.
-    unfold repr in *.
-    destruct (get ds x) eqn:Hx; subst.
-    - auto using ensure_repr_mono.
-    - unfold ensure_repr. rewrite Hx. simpl. rewrite beq_refl. reflexivity.
-  Qed.
 
-  Lemma ensure_repr_get_2: forall ds x rx,
-    repr ds x = rx -> get (ensure_repr ds rx) x = Some rx.
-  Proof.
-    intros.
-    unfold repr in *.
-    destruct (get ds x) eqn:Hx; subst.
-    - auto using ensure_repr_mono.
-    - unfold ensure_repr. rewrite Hx. simpl. rewrite beq_refl. reflexivity.
-  Qed.
-  
   Definition equiv (ds: D) (x y: A) : bool :=
     (repr ds x) =? (repr ds y).
 
@@ -376,8 +345,8 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     unfold equiv in H, H0.
     rewrite beq_correct in *.
     name_term (ensure_repr (ensure_repr ds (repr ds x)) (repr ds y)) ds'.
-    assert (get ds' x' = Some (repr ds x)). { eauto using ensure_repr_get_2, ensure_repr_mono. }
-    assert (get ds' y' = Some (repr ds y)). { eauto using ensure_repr_get_2, ensure_repr_preserve. }
+    assert (get ds' x' = Some (repr ds x)). { eauto using ensure_repr_get, ensure_repr_mono. }
+    assert (get ds' y' = Some (repr ds y)). { eauto using ensure_repr_get, ensure_repr_preserve. }
     apply union_correct_1; assumption.
   Qed.
 
@@ -488,7 +457,7 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     intros.
     unfold union.
     name_term (ensure_repr (ensure_repr ds (repr ds z)) (repr ds w)) ds'.
-    assert (get ds' x = Some (repr ds z)). { eauto using ensure_repr_get_2, ensure_repr_mono. }
+    assert (get ds' x = Some (repr ds z)). { eauto using ensure_repr_get, ensure_repr_mono. }
     unfold repr at 1.
     destruct (eq_dec (repr ds w) (repr ds z)).
     - rewrite e, (replace_values_correct ds' x (repr ds z) (repr ds z)); auto.
@@ -502,7 +471,7 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     intros.
     unfold union.
     name_term (ensure_repr (ensure_repr ds (repr ds z)) (repr ds w)) ds'.
-    assert (get ds' x = Some (repr ds w)). { eauto using ensure_repr_get_2, ensure_repr_preserve. }
+    assert (get ds' x = Some (repr ds w)). { eauto using ensure_repr_get, ensure_repr_preserve. }
     unfold repr at 1.
     rewrite (replace_values_correct ds' x (repr ds w) (repr ds z)); auto.
   Qed.
@@ -544,7 +513,7 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
           left. split; apply IHaxms'; congruence.
         * pose proof (union_different_same_repr ds z w x Hxw) as H1.
           pose proof (union_different_same_repr ds z w y Hyw) as H2.
-          congruence.    
+          congruence.
   Qed.
 
   Theorem make_correct: forall axms x y,
