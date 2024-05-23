@@ -372,23 +372,12 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     (equiv (union ds x y) x' y' = true).
   Proof.
     intros.
-    unfold equiv in H, H0.
     unfold union.
+    unfold equiv in H, H0.
     rewrite beq_correct in *.
-    remember (ensure_repr (ensure_repr ds (repr ds x)) (repr ds y)) as ds'.
-
-    (* H2 : get ds' x' = Some (repr ds x') *)
-    pose proof (ensure_repr_get_2 ds x' (repr ds x) (symmetry H)) as H1.
-    pose proof (ensure_repr_mono (ensure_repr ds (repr ds x)) x' (repr ds x) (repr ds y) H1) as H2.
-    rewrite <- Heqds' in H2.
-    clear H H1.
-
-    (* H4 : get ds' y' = Some (repr ds y') *)
-    pose proof (ensure_repr_preserve ds y' (repr ds x) (repr ds y) (symmetry H0)) as H3.
-    pose proof (ensure_repr_get_2 (ensure_repr ds (repr ds x)) y' (repr ds y) H3) as H4.
-    rewrite <- Heqds' in H4.
-    clear H0 H3.
-
+    name_term (ensure_repr (ensure_repr ds (repr ds x)) (repr ds y)) ds'.
+    assert (get ds' x' = Some (repr ds x)). { eauto using ensure_repr_get_2, ensure_repr_mono. }
+    assert (get ds' y' = Some (repr ds y)). { eauto using ensure_repr_get_2, ensure_repr_preserve. }
     apply union_correct_1; assumption.
   Qed.
 
@@ -497,19 +486,12 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     repr (union ds z w) x = repr ds z.
   Proof.
     intros.
-
     unfold union.
-    pose proof (ensure_repr_get_2 ds x (repr ds z) H) as H1.
-    remember (ensure_repr ds (repr ds z)) as ds'.
-    clear H Heqds'.
-    
-    pose proof (ensure_repr_mono ds' x (repr ds z) (repr ds w) H1) as H2.
-    remember (ensure_repr ds' (repr ds w)) as ds''.
-    clear H1 Heqds''.
-
+    name_term (ensure_repr (ensure_repr ds (repr ds z)) (repr ds w)) ds'.
+    assert (get ds' x = Some (repr ds z)). { eauto using ensure_repr_get_2, ensure_repr_mono. }
     unfold repr at 1.
     destruct (eq_dec (repr ds w) (repr ds z)).
-    - rewrite e, (replace_values_correct ds'' x (repr ds z) (repr ds z)); auto.
+    - rewrite e, (replace_values_correct ds' x (repr ds z) (repr ds z)); auto.
     - rewrite replace_values_correct_neq with (v := repr ds z); auto.
   Qed.
 
@@ -518,18 +500,11 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     repr (union ds z w) x = repr ds z.
   Proof.
     intros.
-
     unfold union.
-
-    pose proof (ensure_repr_preserve ds x (repr ds z) (repr ds w) H) as H1.
-    remember (ensure_repr ds (repr ds z)) as ds'.
-    clear H Heqds'.
-
-    pose proof (ensure_repr_get_2 ds' x (repr ds w) H1) as H2.
-    remember (ensure_repr ds' (repr ds w)) as ds''.
-
+    name_term (ensure_repr (ensure_repr ds (repr ds z)) (repr ds w)) ds'.
+    assert (get ds' x = Some (repr ds w)). { eauto using ensure_repr_get_2, ensure_repr_preserve. }
     unfold repr at 1.
-    rewrite (replace_values_correct ds'' x (repr ds w) (repr ds z)); auto.  
+    rewrite (replace_values_correct ds' x (repr ds w) (repr ds z)); auto.
   Qed.
       
   Lemma make_correct_right: forall axms x y,
