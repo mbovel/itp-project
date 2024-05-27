@@ -261,7 +261,20 @@ Definition union (ds: D) (x y: A) : D :=
   let yr := (repr ds y) in
   let ds' := (ensure_repr (ensure_repr ds xr) yr) in
   (replace_values ds' yr xr).
-  ```
+```
+
+Finally, we define the `make_graph` function that builds a disjoint-set data structure from a list of pairs of elements:
+
+```coq
+Fixpoint make_graph (axms: list (A * A)) : D :=
+  match axms with
+  | [] => empty
+  | (x, y)::axms' => union (make_graph axms') x y
+  end.
+```
+
+`make_graph` calls `union` for each pair in the list of pairs, building the disjoint-set data structure incrementally.
+
 
 ## References
 
