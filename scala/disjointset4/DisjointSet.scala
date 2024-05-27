@@ -1,6 +1,4 @@
-package disjointset3
-
-import annotation.tailrec
+package disjointset4
 
 /** Immutable disjoint set data structure, as a list of pairs, mapping each element to its representative */
 final case class DisjointSet[A](val classes: List[(A, A)]):
