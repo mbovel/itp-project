@@ -324,6 +324,15 @@ Let us detail the three cases:
 
 These are the three possible cases leading to `x` and `y` being equivalent under the relation `R` represented by `(z, w) :: axms`. We use this case analysis to prove the inductive case of our proof by induction on the list of axioms.
 
+TODO a section about the complexity introduced by `ensure_repr` and how we mitigate.
+
+
+### Conclusion
+
+In this work, we implemented a disjoint-set data structure in Coq to represent the equivalence closure of a relation. We used a list of pairs to represent the relation, and implemented the disjoint-set data structure as a list of pairs mapping each element to its representative. We proved that the disjoint-set data structure correctly represents the equivalence closure of the relation.
+
+This structure actually implements a complete procedure for equivalence.
+
 ## References
 
 - [Formalization of a persistent union-find data structure in Coq](https://www.lri.fr/~filliatr/puf/)
