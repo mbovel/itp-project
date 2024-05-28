@@ -307,6 +307,15 @@ A careful case analysis shows that there are three cases to consider, that we wi
 <!-- The following line adds the diagram svg file -->
 ![Diagram](./res/EPFL-Coq-equivalence-classes.svg)
 
+Let us detail the three cases:
+
+1. `x` and `y` are already equivalent in the relation `R` represented by `axms`. In this case, adding the axiom `(z, w)` does not change the equivalence of `x` and `y` in the relation `R` represented by `(z, w) :: axms`.
+
+2. `x` and `y` are in two different classes in the relation `R` represented by `axms`, and adding a new axiom `(w, z)` acutally merges the two classes, because `w` is in the same class as `x` and `z` is in the same class as `y`.
+
+3. This is the same situation as 2., but with `w` and `z` swapped. This case is symmetric to the previous one.
+
+These are the three possible cases leading to `x` and `y` being equivalent under the relation `R` represented by `(z, w) :: axms`. We use this case analysis to prove the inductive case of our proof by induction on the list of axioms.
 
 ## References
 
