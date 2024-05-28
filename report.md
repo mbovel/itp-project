@@ -274,6 +274,13 @@ Fixpoint make_graph (axms: list (A * A)) : D :=
 
 `make_graph` calls `union` for each pair in the list of pairs, building the disjoint-set data structure incrementally.
 
+#### Runtime complexity analysis
+
+We analyse briefly the difference in runtime complexity of the algoirthm implemented by the disjoint-set data structure:
+
+- Equivalence check: the worst case is `O(N)` where `N` is the number of pairs in the list, as we need to traverse the list to find the representative of each element. This could go down to `O(1)` with a smarter implementation of the map structure. The linear cost comes from the representation as a list rather than being inherent to the algorithm.
+- Union: the worst case is `O(N)` where `N` is the number of pairs in the list, as we need to traverse the list to find the representative of each element. This could go down to `O(M)` where `M` is the size of the largest equivalence class, with a smarter implementation of the map structure. Indeed, when adding a new axiom `(w, z)`, the representative of all elements in the class of `z` need to be updated to the representative of `w`.
+
 ### Proof
 
 As stated in the previous section, the main theorem to prove is the following:
