@@ -180,7 +180,7 @@ Module Type DISJOINT_SET (Import BE : BOOL_EQ).
 End DISJOINT_SET.
 ```
 
-This module defines a type `D` for the disjoint-set data structure, an empty set `empty`, a union operation `union` that adds a new pair `(a, b)` to the relation `R`, and an equivalence check `equiv`. The `make_graph` function builds a disjoint-set data structure from a list of pairs of elements. The `make_correct` axiom states that the equivalence relation represented by the disjoint-set data structure is equivalent to the equivalence closure of the relation `R` represented by the list of pairs. This `make_correct` axiom is the main theorem to prove in the project.
+This module defines a type `D` for the disjoint-set data structure that represents the equivalence closure of an underlying implicit relation `R`, an empty disjoint-set `empty`, a union operation `union` that adds a new pair `(a, b)` to the relation `R`, and an equivalence check `equiv`. The `make_graph` function builds a disjoint-set data structure from a list of pairs of elements. The `make_correct` axiom states that the equivalence relation represented by the disjoint-set data structure is equivalent to the equivalence closure of the relation `R` represented by the list of pairs. This `make_correct` axiom is the main theorem to prove in the project.
 
 This disjoint-set interface is generic in the type of elements it contains. An implementation of `BOOL_EQ` for that type is required to be able to use the data structure. The `BOOL_EQ` module provides a boolean equality function for the type `A`, along with a proof that this boolean equality is equivalent to the structural equality used by Coq:
 
@@ -205,12 +205,11 @@ Module StringBoolEq <: BOOL_EQ.
 End StringBoolEq.
 ```
 
-
 ##### Implementation as a list of pairs
 
-We implemented the fourth representation described by the Scala candidates in Coq, as it was the most practical to work with, while remaining an efficient implementation. In the Coq implementation, the list is contrained to be a map from elements to their representatives, i.e., a list of pairs `(A * A)` with no duplicated first element.
+We implemented the fourth representation described by the Scala candidates in Coq, i.e., the implementation based on a list of pairs mapping each element to its representative. We used this particular representation as it was the most practical to work with, while remaining an efficient implementation. In the Coq implementation, the list of pairs is contrained to be a map, i.e., a list of pairs `(A * A)` with no two pairs with the same first element.
 
-We implemented it as of as another `Module` in Coq, implemeting the interface described above:
+We implemented it as of as another `Module` in Coq, implementing the interface described above:
 
 ```coq
 Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
@@ -274,6 +273,39 @@ Fixpoint make_graph (axms: list (A * A)) : D :=
 ```
 
 `make_graph` calls `union` for each pair in the list of pairs, building the disjoint-set data structure incrementally.
+
+### Proof
+
+As stated in the previous section, the main theorem to prove is the following:
+
+```coq
+Axiom make_correct: forall axms x y,
+    eq axms x y <-> equiv (make_graph axms) x y = true.
+```
+
+which states that two elements are equivalent according to the disjoint-set structure for the relation `R` if and only if they are equivalent according in the equivalence closure of `R`. `R` is represented by a list of axioms `axms`. This list is a list of pairs `(x, y)`, meaning that `x` and `y` are equivalent in the relation `R`.
+
+The proof of this theorem is done by induction on the list of axioms `axms`. The base case is trivial, as the empty list of axioms corresponds to the empty relation, and the disjoint-set data structure built from it is also empty, implying that no different elements are equivalent.
+
+For the inductive case however, we need a way to reason about the equivalence of two elements `x` and `y` in the disjoint-set data structure built from a list of axioms with an additional axiom `(w, z)`. Exposed differently, we need to reason about what happens when we add an axiom `(w, z)` to a list of axioms `axms'` and build the disjoint-set data structure from it. 
+
+Formally, this boils down to analysing what `eq (w, z) :: axms' x y` means with respect to `eq axms' x y`. This is one of the pivotal lemmas of the proof.
+
+The lemma is the following:
+
+```coq
+  (
+     (eq axms x y)
+     \/ (eq axms x z /\ eq axms y w)
+     \/ (eq axms x w /\ eq axms y z)
+  )
+    <-> eq ((z, w) :: axms) x y.
+```
+
+A careful case analysis shows that there are three cases to consider, that we will explain with the help of a diagram:
+
+<!-- The following line adds the diagram svg file -->
+![Diagram](./res/EPFL-Coq-equivalence-classes.svg)
 
 
 ## References
