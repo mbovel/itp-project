@@ -50,7 +50,7 @@ This inductive definition is used as a specification for the equivalence relatio
 
 We explored three different implementations of equivalence closure in Scala before implementing them in Coq. We present them here for reference:
 
-1. Map from each element to its parent, corresponding to union-find data structure without rand or path compression:
+1. Map from each element to its parent, corresponding to union-find data structure without rank or path compression:
 
     ```scala
     final class DisjointSet[A](val parents: Map[A, A] = Map.empty[A, A]):
