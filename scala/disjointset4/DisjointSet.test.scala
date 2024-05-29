@@ -1,6 +1,6 @@
 //> using test.dep org.scalameta::munit::1.0.0-M12
 
-package disjointset3
+package disjointset4
 
 class DisjointSetTests extends munit.FunSuite:
   test("transitivity1"):
