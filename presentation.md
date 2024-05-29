@@ -50,8 +50,25 @@ End BOOL_EQ.
   - Define $xRy$ as $(x, y) \in R$
 - **Equivalence closure**:
   - Reflexive-symmetric-transitive closure of $R$
-  - $eq(R)$ is the smallest equivalence relation containing $R$
-  - Reflexive: $\forall x. \; x\ eq(R)\ x$
-  - Symmetric: $\forall x, y. \; x\ eq(R)\ y \Rightarrow  x\ eq(R)\ y$
-  - Transitive: $\forall x, y, z. \; x\ eq(R)\ y \land y\ eq(R)\ z \Rightarrow x\ eq(R)\ z$
-  - Contains $R$: $xRy \Rightarrow x\ eq(R)\ y$
+  - $rst(R)$ smallest equivalence relation containing $R$
+  - Axioms: $R \subseteq rst(R)$
+  - Reflexivity: $\forall a. \; (a, a) \in rst(R)$
+  - Symmetry: $\forall a, b. \; (a, b) \in rst(R) \Rightarrow (b, a) \in rst(R)$
+  - Transitivity: $\forall a, b, c. \;\left((a, b) \in rst(R) \land (b, c) \in rst(R) \right) \Rightarrow (a, c) \in rst(R)$
+
+# Union-find
+
+- Existing data structure for equivalence closure
+- Store $e \rightarrow parent$ mappings
+- Compute representative
+- Path compression for performance
+
+# Specification
+
+```coq
+Inductive eq {A : Type} (axms : list (A * A)) : A -> A -> Prop :=
+  | eq_axms: forall x y: A, In (x, y) axms -> eq axms x y
+  | eq_refl: forall x: A, eq axms x x
+  | eq_sym: forall x y: A, eq axms y x -> eq axms x y
+  | eq_trans: forall x y z: A, eq axms x y -> eq axms y z -> eq axms x z.
+```
