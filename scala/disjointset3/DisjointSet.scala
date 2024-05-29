@@ -9,23 +9,22 @@ final case class DisjointSet[A](val classes: List[List[A]]):
     val bClass = findEqClass(b).getOrElse(List(b))
     if aClass == bClass then DisjointSet(classes)
     else
-      val newClasses =
-        (aClass ++ bClass) :: classes.filterNot(c => c == aClass || c == bClass)
+      val newClasses = (aClass ++ bClass) :: classes.filterNot(c => c == aClass || c == bClass)
       DisjointSet(newClasses)
 
-  def find(a: A): A = findEqClass(a).getOrElse(List(a)).head
+  def repr(a: A): A =
+    findEqClass(a).getOrElse(List(a)).head
 
   private def findEqClass(a: A): Option[List[A]] =
     classes.find(_.contains(a))
 
   def equiv(a: A, b: A): Boolean =
-    find(a) == find(b)
+    repr(a) == repr(b)
 
 @main def Main() =
-  val ds =
-    DisjointSet[String](Nil).union("x", "y").union("y", "z").union("a", "b")
+  val ds = DisjointSet[String](Nil).union("x", "y").union("y", "z").union("a", "b")
   println(f"x eq y: ${ds.equiv("x", "y")}")
-  println(f"x eq y: ${ds.equiv("x", "z")}")
+  println(f"x eq z: ${ds.equiv("x", "z")}")
   println(f"a eq b: ${ds.equiv("a", "b")}")
   println(f"a eq x: ${ds.equiv("a", "x")}")
 

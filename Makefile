@@ -19,7 +19,7 @@ presentation.html: presentation.md presentation.css Makefile
 		`# -V center="false"` \
 		-V width="1200" \
 		-V height="675" \
-		-V margin="0.10" \
+		-V margin="0.12" \
 		-V transition="none" \
 		-V header-includes='<link rel="stylesheet" href="presentation.css" />' \
 		-V include-after='<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/scala.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/coq.min.js"></script><script>hljs.highlightAll();</script>' \
