@@ -26,7 +26,6 @@ presentation.html: presentation.md presentation.css Makefile
 		-V history="true" \
 		-V slideNumber \
 		-V controls="false" \
-		-V center="false" \
 		--shift-heading-level-by=1
 
 .PHONY: clean

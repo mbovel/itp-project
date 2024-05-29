@@ -25,7 +25,7 @@
 }
 
 .reveal pre code {
-    max-height: none;
+    max-height: 550px;
 }
 
 .reveal small,

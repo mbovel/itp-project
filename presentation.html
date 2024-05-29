@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="generator" content="pandoc">
   <meta name="author" content="Samuel Chassot @LARA, EPFL Matt Bovel @LAMP/LARA, EPFL">
-  <meta name="dcterms.date" content="2024-05-29">
-  <title>Equivalence Closure Data Structure in Coq</title>
+  <meta name="dcterms.date" content="2024-05-30">
+  <title>Disjoint Set Implementation in Coq</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -54,7 +54,7 @@
     <div class="slides">
 
 <section id="title-slide">
-  <h1 class="title">Equivalence Closure Data Structure in Coq</h1>
+  <h1 class="title">Disjoint Set Implementation in Coq</h1>
   <p class="author"><a href="mailto:samuel.chassot@epfl.ch">Samuel
 Chassot</a> @<a href="https://epfl-lara.github.io">LARA</a>, <a
 href="https://www.epfl.ch/fr/">EPFL</a><br/><a
@@ -62,44 +62,22 @@ href="mailto:matthieu.bovel@epfl.ch">Matt Bovel</a> @<a
 href="https://www.epfl.ch/labs/lamp/">LAMP</a>/<a
 href="https://epfl-lara.github.io">LARA</a>, <a
 href="https://www.epfl.ch/fr/">EPFL</a></p>
-  <p class="date">May 29, 2024</p>
+  <p class="date">May 30, 2024</p>
 </section>
 
-<section id="introduction" class="slide level2">
-<h2>Introduction</h2>
-<ul>
-<li><strong>What?</strong>
-<ul>
-<li>Equivalence closure data structure in Coq</li>
-<li>Decision procedure for equivalent closure relations</li>
-<li>Correctness proof</li>
-</ul></li>
-<li><strong>Why?</strong>
-<ul>
-<li>Used in many applications: type systems, SMT solvers, verification,
-…</li>
-<li>For example, verify:
-<code>if x == y &amp;&amp; y == z then assert(x == z)</code></li>
-<li>Understand automatic reasoning about equality</li>
-</ul></li>
-</ul>
+<section id="what-weve-done" class="slide level2">
+<h2>What we’ve done</h2>
+<p>We implemented a <em>disjoint set</em> data structure in Coq.</p>
+<p>We proved that it can be used as a decision procedure for the
+<em>equivalence closure</em> of a relation.</p>
 </section>
-<section id="equivalence-closure" class="slide level2">
-<h2>Equivalence closure</h2>
-<ul>
-<li><strong>Relation</strong>:
-<ul>
-<li>Binary relation: <span class="math inline">R \subseteq A \times
-A</span></li>
-<li>Define <span class="math inline">xRy</span> as <span
-class="math inline">(x, y) \in R</span></li>
-</ul></li>
-<li><strong>Equivalence closure</strong>:
-<ul>
-<li>Reflexive-symmetric-transitive closure of <span
-class="math inline">R</span></li>
-<li><span class="math inline">rst(R)</span> is the smallest relation
-such as:
+<section id="equivalence-closure-definition" class="slide level2">
+<h2>Equivalence closure definition</h2>
+<p>Let <span class="math inline">R \subseteq A \times A</span> be a
+binary relation.</p>
+<p>We define <span class="math inline">rst(R)</span> its
+<em>reflexive-symmetric-transitive closure</em>—or <em>equivalence
+closure</em>—<br/>as the smallest relation such that:</p>
 <ul>
 <li>Axioms: <span class="math inline">R \subseteq rst(R)</span></li>
 <li>Reflexivity: <span class="math inline">\forall a. \; (a, a) \in
@@ -109,8 +87,6 @@ rst(R) \Rightarrow (b, a) \in rst(R)</span></li>
 <li>Transitivity: <span class="math inline">\forall a, b, c. \;\left((a,
 b) \in rst(R) \land (b, c) \in rst(R) \right) \Rightarrow (a, c) \in
 rst(R)</span></li>
-</ul></li>
-</ul></li>
 </ul>
 </section>
 <section id="equivalence-closure-in-coq" class="slide level2">
@@ -121,15 +97,21 @@ rst(R)</span></li>
   | eq_sym: forall x y: A, eq axms y x -&gt; eq axms x y
   | eq_trans: forall x y z: A, eq axms x y -&gt; eq axms y z -&gt; eq axms x z.</code></pre>
 </section>
-<section id="union-find" class="slide level2">
-<h2>Union-find</h2>
-<ul>
-<li>Existing data structure for equivalence closure</li>
-<li>Store <span class="math inline">e \rightarrow parent</span>
-mappings</li>
-<li>Compute representative</li>
-<li>Path compression for performance</li>
-</ul>
+<section id="motivation" class="slide level2">
+<h2>Motivation</h2>
+<p>Reasoning about equality is useful for many applications: type
+systems, SMT solvers, verification, etc.</p>
+<p>For example:</p>
+<pre class="scala"><code>if x == y &amp;&amp; y == z then
+  assert(x == z) // Verify that this always holds</code></pre>
+<div class="fragment">
+<p>or:</p>
+<pre class="scala"><code>if x == y &amp;&amp; y == z then
+  val v: (Int with v == x) = z // Verify that v == z -&gt; v == x in this context</code></pre>
+</div>
+</section>
+<section id="union-find-data-structure" class="slide level2">
+<h2>Union-find data structure</h2>
 </section>
 <section id="union-find-data-structure-implementation"
 class="slide level2">
@@ -266,8 +248,8 @@ End StringBoolEq.</code></pre>
 <p>Remember, we want to prove:</p>
 <pre class="coq"><code>Axiom make_correct: forall axms x y,
     eq axms x y &lt;-&gt; equiv (make_graph axms) x y = true.</code></pre>
-<p><strong>Technique:</strong> we went with an induction on the axioms
-list for both directions.</p>
+<p><strong>Technique:</strong> induction on the axioms list for both
+directions.</p>
 <p><strong>Main question:</strong> how to make use of the induction
 hypothesis? How to relate <code>eq axms x y</code> to
 <code>eq ((z, w) :: axms) x y</code>?</p>
@@ -298,6 +280,143 @@ hypothesis? How to relate <code>eq axms x y</code> to
      \/ (eq axms x w /\ eq axms y z)
    )
    &lt;-&gt; eq ((z, w) :: axms) x y.</code></pre>
+<div class="fragment">
+<p>And the other direction:</p>
+<pre class="coq"><code>Lemma eq_nonempty_inverse: forall {A} (x y z w: A) (axms: list (A * A)),
+   eq ((z, w) :: axms) x y
+   -&gt; (
+     (eq axms x y)
+     \/ (eq axms z x /\ eq axms w y)
+     \/ (eq axms w x /\ eq axms z y)
+   ).</code></pre>
+</div>
+</section>
+<section id="from-theory-to-practice" class="slide level2">
+<h2>From theory to practice</h2>
+<pre class="coq"><code>Lemma make_correct_left: forall axms x y,
+  eq axms x y -&gt; equiv (make_graph axms) x y = true.
+Proof.
+  induction axms; intros.
+  - ...
+  - destruct a as [z w].
+    (* IH: forall x y : A, eq axms x y -&gt; equiv (make_graph axms) x y = true *)
+    (* H: eq ((z, w) :: axms) x y *)
+    (* Goal: equiv (make_graph ((z, w) :: axms)) x y = true *)
+    apply eq_nonempty_inverse in H.
+    destruct H.
+    + (* x was already equivlent to y in axms *)
+      (* H: eq axms x y *)
+      apply IHaxms in H.
+      (* H: equiv (make_graph axms) x y = true *)
+      apply union_mono.
+      assumption.
+    + destruct H.
+      * (* x was equivalent to z and y was equivalent to w in axms *)
+        destruct H as [H1 H2].
+        (* H1: eq axms x z *)
+        (* H2: eq axms w y *)
+        apply IHaxms in H1, H2.
+        (* H1: equiv (make_graph axms) z x = true *)
+        (* H2: equiv (make_graph axms) w y = true *)
+        apply union_correct; assumption.
+      * (* x was equivalent to z and y was equivalent to w in axms *)
+        destruct H as [H1 H2].
+        (* H1: eq axms x x *)
+        (* H2: eq axms z y *)
+        apply IHaxms in H1, H2.
+        ...</code></pre>
+</section>
+<section class="slide level2">
+
+<p>Intermediate lemmas:</p>
+<pre class="coq"><code>Theorem union_correct: forall ds w x z y,
+  (equiv ds w x = true) -&gt;
+  (equiv ds z y = true) -&gt;
+  (equiv (union ds w z) x y = true).
+Proof.
+  intros. unfold union. unfold equiv in H, H0. beq_to_eq.
+  name_term (ensure_repr (ensure_repr ds (repr ds w)) (repr ds z)) ds&#39;.
+  assert (get ds&#39; x = Some (repr ds w)). { eauto using ensure_repr_get, ensure_repr_mono. }
+  assert (get ds&#39; y = Some (repr ds z)). { eauto using ensure_repr_get, ensure_repr_preserve. }
+  apply union_correct_1; assumption.
+Qed.</code></pre>
+<div class="fragment">
+<pre class="coq"><code>Lemma union_correct_1: forall ds x xr y yr,
+  (get ds x) = Some xr -&gt;
+  (get ds y) = Some yr -&gt;
+  (equiv (replace_values ds yr xr) x y = true).</code></pre>
+</div>
+</section>
+<section class="slide level2">
+
+<pre class="coq"><code>Lemma union_mono: forall ds x y w z,
+  equiv ds x y = true -&gt; equiv (union ds w z) x y = true.
+Proof.
+  intros. 
+  unfold equiv in *. 
+  apply beq_correct. rewrite beq_correct in H. 
+  remember (repr ds y) as yr.
+  remember (repr ds x) as xr.
+  remember (repr ds z) as zr.
+  remember (repr ds w) as wr.
+  destruct (xr =? zr) eqn:Heq.
+  + (* In this case, the representant of x and y will change to become wr, but still the same *)
+    ...
+  + (* In this case, the representant of x and y will not change *)
+    ...</code></pre>
+</section>
+<section id="from-practice-to-theory" class="slide level2">
+<h2>From practice to theory</h2>
+<pre class="coq"><code>Lemma make_correct_right: forall axms x y,
+  equiv (make_graph axms) x y = true -&gt; eq axms x y.
+Proof.
+  induction axms; intros.
+  - ...
+  - destruct a as [z w].
+    (* IH: forall x y : A, equiv (make_graph axms) x y = true -&gt; eq axms x y *)
+    (* H : equiv (make_graph ((z, w) :: axms)) x y = true *)
+    (* Goal: eq ((z, w) :: axms) x y *)
+    simpl in H.
+    apply eq_nonempty.
+    (* Goal: eq axms x y \/ eq axms x z /\ eq axms y w \/ eq axms x w /\ eq axms y z *)
+    destruct (equiv (make_graph axms) x y) eqn:Hxy.
+    + left. apply IHaxms. assumption.
+    + remember (make_graph axms) as ds.
+      assert (forall x y : A, repr ds x = repr ds y -&gt; eq axms x y) as IHaxms&#39;.
+      { intros. apply IHaxms. unfold equiv. beq_to_eq. assumption. }
+      destruct (equiv ds x w) eqn:Hxw, (equiv ds y w) eqn:Hyw; unfold equiv in *; beq_to_eq.
+      * (* x and y are already equivalent in ds *)
+        assert (repr ds x = repr ds y) by congruence.
+        left. apply IHaxms. beq_to_eq. assumption.
+      * (* repr of x change, repr of y stays the same *)
+        pose proof (union_repr_change ds x w z Hxw) as H1.
+        pose proof (union_different_same_repr ds z w y Hyw) as H2.
+        right. right. split; apply IHaxms&#39;; congruence.
+      * (* repr of x stays the same, repr of y change *)
+        pose proof (union_different_same_repr ds z w x Hxw) as H2.
+        pose proof (union_repr_change ds y w z Hyw) as H1.
+        right. left. split; apply IHaxms&#39;; congruence.
+      * (* repr of x was not w and repr of y was not w *)
+        pose proof (union_different_same_repr ds z w x Hxw) as H1.
+        pose proof (union_different_same_repr ds z w y Hyw) as H2.
+        (* Contradiction *)
+        right. congruence.
+Qed.</code></pre>
+</section>
+<section class="slide level2">
+
+<p>Intermediate lemmas:</p>
+<pre class="coq"><code>Lemma union_different_same_repr: forall ds x y z,
+    repr ds z &lt;&gt; repr ds y -&gt; repr (union ds x y) z = repr ds z.</code></pre>
+<pre class="coq"><code>Lemma union_repr_change: forall ds x w z,
+  repr ds x = repr ds w -&gt;
+  repr (union ds z w) x = repr ds z.
+Proof.</code></pre>
+</section>
+<section id="conclusion" class="slide level2">
+<h2>Conclusion</h2>
+<p>We implemented a disjoint-set data structure in Coq and proved its
+correctness.</p>
 </section>
     </div>
   </div>
@@ -361,7 +480,7 @@ hypothesis? How to relate <code>eq axms x y</code> to
         disableLayout: false,
 
         // Vertical centering of slides
-        center: false,
+        center: true,
 
         // Enables touch navigation on devices with touch input
         touch: true,
