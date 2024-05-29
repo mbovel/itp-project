@@ -20,11 +20,8 @@
     div.columns{display: flex; gap: min(4vw, 1.5em);}
     div.column{flex: auto; overflow-x: auto;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
+    ul.task-list{list-style: none;}
     ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
       width: 0.8em;
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
@@ -32,7 +29,7 @@
   </style>
   <link rel="stylesheet" href="https://unpkg.com/reveal.js@^4//dist/theme/white.css" id="theme">
   <script defer=""
-  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function () {
  var mathElements = document.getElementsByClassName("math");
  var macros = [];
@@ -48,7 +45,7 @@
 }}});
   </script>
   <link rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css" />
+  href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
   <link rel="stylesheet" href="presentation.css" />
 </head>
@@ -68,32 +65,6 @@ href="https://www.epfl.ch/fr/">EPFL</a></p>
   <p class="date">May 29, 2024</p>
 </section>
 
-<section id="scala-code-example" class="slide level2">
-<h2>Scala code example</h2>
-<pre class="scala"><code>final class DisjointSet[A](val parents: Map[A, A] = Map.empty[A, A]):
-  def union(a: A, b: A): DisjointSet[A] =
-    val aRepr = find(a)
-    val bRepr = find(b)
-    DisjointSet(parents + (bRepr -&gt; aRepr))
-
-  @tailrec
-  def find(a: A): A =
-    val repr = parents.getOrElse(a, a)
-    if repr == a then a else find(repr)
-
-  def equiv(a: A, b: A): Boolean =
-    find(a) == find(b)</code></pre>
-</section>
-<section id="coq-code-example" class="slide level2">
-<h2>Coq code example</h2>
-<pre class="coq"><code>Module Type BOOL_EQ.
-  Parameter A : Type.
-  Axiom eq_dec : forall (x y : A), {x = y} + {x &lt;&gt; y}.
-  Parameter beq : A -&gt; A -&gt; bool.
-  Notation &quot;x =? y&quot; := (beq x y) (at level 70).
-  Axiom beq_correct : forall x y : A, (x =? y) = true &lt;-&gt; x = y.
-End BOOL_EQ.</code></pre>
-</section>
 <section id="introduction" class="slide level2">
 <h2>Introduction</h2>
 <ul>
@@ -107,14 +78,16 @@ End BOOL_EQ.</code></pre>
 <ul>
 <li>Used in many applications: type systems, SMT solvers, verification,
 …</li>
+<li>For example, verify:
+<code>if x == y &amp;&amp; y == z then assert(x == z)</code></li>
 <li>Understand automatic reasoning about equality</li>
 </ul></li>
 </ul>
 </section>
-<section id="background" class="slide level2">
-<h2>Background</h2>
+<section id="equivalence-closure" class="slide level2">
+<h2>Equivalence closure</h2>
 <ul>
-<li><strong>Relation</strong>
+<li><strong>Relation</strong>:
 <ul>
 <li>Binary relation: <span class="math inline">R \subseteq A \times
 A</span></li>
@@ -125,18 +98,197 @@ class="math inline">(x, y) \in R</span></li>
 <ul>
 <li>Reflexive-symmetric-transitive closure of <span
 class="math inline">R</span></li>
-<li><span class="math inline">eq(R)</span> is the smallest equivalence
-relation containing <span class="math inline">R</span></li>
-<li>Reflexive: <span class="math inline">\forall x. \; x\ eq(R)\
-x</span></li>
-<li>Symmetric: <span class="math inline">\forall x, y. \; x\ eq(R)\ y
-\Rightarrow  x\ eq(R)\ y</span></li>
-<li>Transitive: <span class="math inline">\forall x, y, z. \; x\ eq(R)\
-y \land y\ eq(R)\ z \Rightarrow x\ eq(R)\ z</span></li>
-<li>Contains <span class="math inline">R</span>: <span
-class="math inline">xRy \Rightarrow x\ eq(R)\ y</span></li>
+<li><span class="math inline">rst(R)</span> is the smallest relation
+such as:
+<ul>
+<li>Axioms: <span class="math inline">R \subseteq rst(R)</span></li>
+<li>Reflexivity: <span class="math inline">\forall a. \; (a, a) \in
+rst(R)</span></li>
+<li>Symmetry: <span class="math inline">\forall a, b. \; (a, b) \in
+rst(R) \Rightarrow (b, a) \in rst(R)</span></li>
+<li>Transitivity: <span class="math inline">\forall a, b, c. \;\left((a,
+b) \in rst(R) \land (b, c) \in rst(R) \right) \Rightarrow (a, c) \in
+rst(R)</span></li>
+</ul></li>
 </ul></li>
 </ul>
+</section>
+<section id="equivalence-closure-in-coq" class="slide level2">
+<h2>Equivalence closure in Coq</h2>
+<pre class="coq"><code>Inductive eq {A : Type} (axms : list (A * A)) : A -&gt; A -&gt; Prop :=
+  | eq_axms: forall x y: A, In (x, y) axms -&gt; eq axms x y
+  | eq_refl: forall x: A, eq axms x x
+  | eq_sym: forall x y: A, eq axms y x -&gt; eq axms x y
+  | eq_trans: forall x y z: A, eq axms x y -&gt; eq axms y z -&gt; eq axms x z.</code></pre>
+</section>
+<section id="union-find" class="slide level2">
+<h2>Union-find</h2>
+<ul>
+<li>Existing data structure for equivalence closure</li>
+<li>Store <span class="math inline">e \rightarrow parent</span>
+mappings</li>
+<li>Compute representative</li>
+<li>Path compression for performance</li>
+</ul>
+</section>
+<section id="union-find-data-structure-implementation"
+class="slide level2">
+<h2>Union-find data structure implementation</h2>
+<pre class="scala"><code>/** Immutable implementation of a disjoint set data structure, based on
+  * union-find without rank or path compression. */
+final class DisjointSet[A](val parents: Map[A, A] = Map.empty[A, A]):
+  def repr(a: A): A =
+    val parent = parents.getOrElse(a, a)
+    if parent == a then a else repr(parent)
+
+  def equiv(a: A, b: A): Boolean =
+    repr(a) == repr(b)
+
+  def union(a: A, b: A): DisjointSet[A] =
+    val aRepr = repr(a)
+    val bRepr = repr(b)
+    DisjointSet(parents + (bRepr -&gt; aRepr))</code></pre>
+</section>
+<section id="easier-to-prove-implementation" class="slide level2">
+<h2>Easier-to-prove implementation</h2>
+<pre class="scala"><code>final case class DisjointSet[A](val classes: List[(A, A)]):
+  def repr(a: A): A =
+    classes.find(p =&gt; p._1 == a) match
+      case None         =&gt; a
+      case Some((_, r)) =&gt; r
+
+  def equiv(a: A, b: A): Boolean =
+    repr(a) == repr(b)
+
+  def union(a: A, b: A): DisjointSet[A] =
+    val aRepr = repr(a)
+    val bRepr = repr(b)
+    val gPrime = ensureRepr(ensureRepr(classes, aRepr), bRepr)
+    DisjointSet(gPrime.map(p =&gt; if p._2 == bRepr then (p._1, aRepr) else p))</code></pre>
+</section>
+<section class="slide level2">
+
+<p>Helper to ensure that a value has a representative:</p>
+<pre class="scala"><code>def ensureRepr[A](classes: List[(A, A)], a: A): List[(A, A)] =
+  classes.find(p =&gt; p._1 == a) match
+    case None    =&gt; (a, a) :: classes
+    case Some(_) =&gt; classes</code></pre>
+<p>This avoids any other check or invariant about the existence of
+representatives in the list-map.</p>
+</section>
+<section id="disjoint-set-interface" class="slide level2">
+<h2>Disjoint-set interface</h2>
+<pre class="coq"><code>Module Type DISJOINT_SET (Import BE : BOOL_EQ).
+  Parameter D : Type.
+  Parameter empty : D.
+  Parameter union : D -&gt; A -&gt; A -&gt; D.
+  Parameter equiv : D -&gt; A -&gt; A -&gt; bool.
+  Fixpoint make_graph (axms: list (A * A)) : D :=
+    match axms with
+    | [] =&gt; empty
+    | (x, y)::axms&#39; =&gt; union (make_graph axms&#39;) x y
+    end.
+  Axiom make_correct: forall axms x y,
+    eq axms x y &lt;-&gt; equiv (make_graph axms) x y = true.
+End DISJOINT_SET.</code></pre>
+</section>
+<section id="equatable-type-interface" class="slide level2">
+<h2>Equatable type interface</h2>
+<pre class="coq"><code>Module Type BOOL_EQ.
+  Parameter A : Type.
+  Axiom eq_dec : forall (x y : A), {x = y} + {x &lt;&gt; y}.
+  Parameter beq : A -&gt; A -&gt; bool.
+  Notation &quot;x =? y&quot; := (beq x y) (at level 70).
+  Axiom beq_correct : forall x y : A, (x =? y) = true &lt;-&gt; x = y.
+End BOOL_EQ.
+
+Module StringBoolEq &lt;: BOOL_EQ.
+  Definition A := string.
+  Definition eq_dec := String.string_dec.
+  Definition beq := String.eqb.
+  Definition beq_correct := String.eqb_eq.
+End StringBoolEq.</code></pre>
+</section>
+<section id="disjoint-set-as-a-list-of-pairs" class="slide level2">
+<h2>Disjoint-set as a list of pairs</h2>
+<pre class="coq"><code>Module DisjointSetListPair (Import BE : BOOL_EQ) &lt;: DISJOINT_SET BE.
+  Definition D := list (A * A).
+  Definition empty : D := [].</code></pre>
+</section>
+<section class="slide level2">
+
+<pre class="coq"><code>  Fixpoint get (ds: D) (x: A) : option A :=
+    match ds with
+    | [] =&gt; None
+    | (z, w)::ds&#39; =&gt; if x =? z then Some w else get ds&#39; x
+    end.
+  
+  Definition repr (ds: D) (x: A) : A :=
+    match get ds x with
+    | Some y =&gt; y
+    | None =&gt; x
+    end.
+
+  Definition equiv (ds: D) (x y: A) : bool :=
+    (repr ds x) =? (repr ds y).</code></pre>
+</section>
+<section class="slide level2">
+
+<pre class="coq"><code>  Definition ensure_repr (ds: D) (x: A) : D :=
+    match get ds x with
+    | Some _ =&gt; ds
+    | None =&gt; (x, x) :: ds
+    end.
+
+  Fixpoint replace_values (ds: D) (v1 v2: A) : D :=
+    match ds with
+    | [] =&gt; []
+    | (x, y)::ds&#39; =&gt; (x, if y =? v1 then v2 else y) :: replace_values ds&#39; v1 v2
+    end.
+
+  Definition union (ds: D) (x y: A) : D :=
+    let xr := (repr ds x) in
+    let yr := (repr ds y) in
+    let ds&#39; := (ensure_repr (ensure_repr ds xr) yr) in
+    (replace_values ds&#39; yr xr).</code></pre>
+</section>
+<section id="proof-intuition" class="slide level2">
+<h2>Proof intuition</h2>
+<p>Remember, we want to prove:</p>
+<pre class="coq"><code>Axiom make_correct: forall axms x y,
+    eq axms x y &lt;-&gt; equiv (make_graph axms) x y = true.</code></pre>
+<p><strong>Technique:</strong> we went with an induction on the axioms
+list for both directions.</p>
+<p><strong>Main question:</strong> how to make use of the induction
+hypothesis? How to relate <code>eq axms x y</code> to
+<code>eq ((z, w) :: axms) x y</code>?</p>
+</section>
+<section class="slide level2">
+
+<p><strong>Main intuition:</strong> if we have
+<code>eq ((w, z) :: axms) x y</code> it’s either that</p>
+<ol type="1">
+<li><code>x</code> and <code>y</code> were already equivalent with
+<code>axms</code>,</li>
+<li>or <code>x</code> was equivalent to <code>z</code> and
+<code>y</code> was equivalent to <code>w</code> with
+<code>axms</code>,</li>
+<li>or <code>x</code> was equivalent to <code>w</code> and
+<code>y</code> was equivalent to <code>z</code> with
+<code>axms</code>.</li>
+</ol>
+<p><img src="res/EPFL-Coq-equivalence-classes.svg" height="428px" style="margin: 0 auto; display: block;"></p>
+</section>
+<section class="slide level2">
+
+<p>Written otherwise:</p>
+<pre class="coq"><code>Lemma eq_nonempty: forall {A} (x y z w: A) (axms: list (A * A)),
+   (
+     (eq axms x y)
+     \/ (eq axms x z /\ eq axms y w)
+     \/ (eq axms x w /\ eq axms y z)
+   )
+   &lt;-&gt; eq ((z, w) :: axms) x y.</code></pre>
 </section>
     </div>
   </div>
@@ -154,7 +306,7 @@ class="math inline">xRy \Rightarrow x\ eq(R)\ y</span></li>
       // https://revealjs.com/config/
       Reveal.initialize({
         // Display controls in the bottom right corner
-        controls: true,
+        controls: false,
 
         // Help the user learn the controls by providing hints, for example by
         // bouncing the down arrow when they first encounter a vertical slide
@@ -171,7 +323,7 @@ class="math inline">xRy \Rightarrow x\ eq(R)\ y</span></li>
         progress: true,
 
         // Display the page number of the current slide
-        slideNumber: false,
+        slideNumber: true,
 
         // 'all', 'print', or 'speaker'
         showSlideNumber: 'all',
@@ -200,7 +352,7 @@ class="math inline">xRy \Rightarrow x\ eq(R)\ y</span></li>
         disableLayout: false,
 
         // Vertical centering of slides
-        center: true,
+        center: false,
 
         // Enables touch navigation on devices with touch input
         touch: true,
@@ -301,7 +453,7 @@ class="math inline">xRy \Rightarrow x\ eq(R)\ y</span></li>
         height: 675,
 
         // Factor of the display size that should remain empty around the content
-        margin: 0.14,
+        margin: 0.12,
 
         // reveal.js plugins
         plugins: [

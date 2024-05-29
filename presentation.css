@@ -3,7 +3,7 @@
     /* --r-main-font: Helvetica; */
     --primary-color: #a626a4;
     --selection-color: #a626a4;
-    --r-main-font-size: 33px;
+    --r-main-font-size: 29px;
     --r-link-color: var(--primary-color);
     --r-link-color-hover: #ff00fb;
 }
@@ -20,13 +20,22 @@
 .reveal pre {
     box-shadow: none;
     line-height: 1.5;
-    font-size: 0.7em;
+    font-size: 0.8em;
     width: auto;
+}
+
+.reveal pre code {
+    max-height: none;
 }
 
 .reveal small,
 .reveal small * {
     vertical-align: inherit;
+}
+
+.reveal ul,
+.reveal p {
+    line-height: 1.5;
 }
 
 .reveal ul ul {

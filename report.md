@@ -54,18 +54,17 @@ We explored three different implementations of equivalence closure in Scala befo
 
     ```scala
     final class DisjointSet[A](val parents: Map[A, A] = Map.empty[A, A]):
-      def union(a: A, b: A): DisjointSet[A] =
-        val aRepr = find(a)
-        val bRepr = find(b)
-        DisjointSet(parents + (bRepr -> aRepr))
-
-      @tailrec
-      def find(a: A): A =
-        val repr = parents.getOrElse(a, a)
-        if repr == a then a else find(repr)
+      @tailrec def repr(a: A): A =
+        val parent = parents.getOrElse(a, a)
+        if parent == a then a else repr(parent)
 
       def equiv(a: A, b: A): Boolean =
-        find(a) == find(b)
+        repr(a) == repr(b)
+
+      def union(a: A, b: A): DisjointSet[A] =
+        val aRepr = repr(a)
+        val bRepr = repr(b)
+        DisjointSet(parents + (bRepr -> aRepr))
     ```
 
     In this version, the representative of an element is either itself if its parent is itself, or the representative of its parent. If the element is not in the map, it is its own representative.
@@ -77,20 +76,19 @@ We explored three different implementations of equivalence closure in Scala befo
 2. Map from each element to its equivalence class.
 
     ```scala
-    final class DisjointSet[A](val parents: Map[A, A] = Map.empty[A, A]):
-      def union(a: A, b: A): DisjointSet[A] =
-        val aRepr = find(a)
-        val bRepr = find(b)
-        DisjointSet(parents + (bRepr -> aRepr))
-
-      @tailrec
-      def find(a: A): A =
-        val repr = parents.getOrElse(a, a)
-        if repr == a then a else find(repr)
+    final class DisjointSet[A](val equivalences: Map[A, List[A]] = Map.empty[A, List[A]]):
+      def repr(a: A): A =
+        getEquivs(a).head
 
       def equiv(a: A, b: A): Boolean =
-        find(a) == find(b)
+        repr(a) == repr(b)
 
+      private def getEquivs(a: A): List[A] =
+        equivalences.getOrElse(a, List(a))
+
+      def union(a: A, b: A): DisjointSet[A] =
+        val newClass = getEquivs(a) ++ getEquivs(b)
+        DisjointSet(equivalences ++ newClass.map(_ -> newClass))
     ```
 
     In this version, the representative of an element is the representative of its equivalence class, which is the first element of the list representing the classes. If the element is not in the map, it is its own representative.
@@ -108,17 +106,17 @@ We explored three different implementations of equivalence closure in Scala befo
         val bClass = findEqClass(b).getOrElse(List(b))
         if aClass == bClass then DisjointSet(classes)
         else
-          val newClasses =
-            (aClass ++ bClass) :: classes.filterNot(c => c == aClass || c == bClass)
+          val newClasses = (aClass ++ bClass) :: classes.filterNot(c => c == aClass || c == bClass)
           DisjointSet(newClasses)
 
-      def find(a: A): A = findEqClass(a).getOrElse(List(a)).head
+      def repr(a: A): A =
+        findEqClass(a).getOrElse(List(a)).head
 
       private def findEqClass(a: A): Option[List[A]] =
         classes.find(_.contains(a))
 
       def equiv(a: A, b: A): Boolean =
-        find(a) == find(b)
+        repr(a) == repr(b)
     ```
 
     In this version, the representative of an element is the first element of the list (i.e. class) containing this element. If no class contains the element, the element is its own representative.
@@ -131,23 +129,24 @@ We explored three different implementations of equivalence closure in Scala befo
 
     ```scala
     final case class DisjointSet[A](val classes: List[(A, A)]):
-      def union(a: A, b: A): DisjointSet[A] =
-        val aRepr = find(a)
-        val bRepr = find(b)
-        DisjointSet(
-          ensureRepr(aRepr, ensureRepr(bRepr, classes)).map(p =>
-            if p._2 == bRepr then (p._1, aRepr) else p
-          )
-        )
-
-      def ensureRepr(a: A, classes: List[(A, A)]): List[(A, A)] =
-        if (classes.find(p => p._1 == a).isDefined) classes
-        else (a, a) :: classes
-
-      def find(a: A): A = classes.find(p => p._1 == a).getOrElse((a, a))._2
+      def repr(a: A): A =
+        classes.find(p => p._1 == a) match
+          case None         => a
+          case Some((_, r)) => r
 
       def equiv(a: A, b: A): Boolean =
-        find(a) == find(b)
+        repr(a) == repr(b)
+
+      def union(a: A, b: A): DisjointSet[A] =
+        val aRepr = repr(a)
+        val bRepr = repr(b)
+        val gPrime = ensureRepr(ensureRepr(classes, aRepr), bRepr)
+        DisjointSet(gPrime.map(p => if p._2 == bRepr then (p._1, aRepr) else p))
+      
+    def ensureRepr[A](classes: List[(A, A)], a: A): List[(A, A)] =
+      classes.find(p => p._1 == a) match
+        case None    => (a, a) :: classes
+        case Some(_) => classes
     ```
 
     In this version, the representative of an element is the second element of the pair containing this element. If no pair contains the element, the element is its own representative.

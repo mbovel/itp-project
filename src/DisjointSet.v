@@ -79,7 +79,6 @@ Module DisjointSetListList (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
 End DisjointSetListList.
 *)
 
-
 Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
   Definition D := list (A * A).
   Definition empty : D := [].
@@ -90,6 +89,7 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     | (z, w)::ds' => if x =? z then Some w else get ds' x
     end.
 
+  (*
   Fixpoint is_map (ds: D) : Prop :=
     match ds with
     | [] => True
@@ -106,10 +106,6 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       + apply beq_correct in Heq. left. congruence.
       + right. apply IHds. assumption.
   Qed.
-
-  Lemma beq_refl: forall x,
-    x =? x = true.
-  Proof. intros. apply beq_correct. reflexivity. Qed.
 
   Lemma in_get: forall ds x y,
     is_map ds -> In (x, y) ds -> get ds x = Some y.
@@ -128,12 +124,17 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
           discriminate.
         * apply IHds; try assumption.
   Qed.
+  *)
 
   Fixpoint replace_values (ds: D) (v1 v2: A) : D :=
     match ds with
     | [] => []
     | (x, y)::ds' => (x, if y =? v1 then v2 else y) :: replace_values ds' v1 v2
     end.
+
+  Lemma beq_refl: forall x,
+    x =? x = true.
+  Proof. intros. apply beq_correct. reflexivity. Qed.
 
   Lemma nbeq_correct: forall x y,
     x =? y = false <-> x <> y.
@@ -259,7 +260,6 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       + unfold get, repr. simpl. rewrite Heqxy. assumption.
   Qed.
 
-
   Definition equiv (ds: D) (x y: A) : bool :=
     (repr ds x) =? (repr ds y).
 
@@ -284,7 +284,6 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     let yr := (repr ds y) in
     let ds' := (ensure_repr (ensure_repr ds xr) yr) in
     (replace_values ds' yr xr).
-
 
   Lemma beq_correct_false: forall x y,
     x =? y = false <-> x <> y.
@@ -447,7 +446,6 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
           unfold equiv in H3.
           rewrite beq_correct in H3.
           congruence.
-          (* Will need to prove that union(a,b) is equivalent to union(b,a) -> Nope haha *)
   Qed.
 
   Lemma union_repr_2: forall ds x z w,
