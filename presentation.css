@@ -20,16 +20,13 @@
 .reveal pre {
     box-shadow: none;
     line-height: 1.5;
+    font-size: 0.7em;
+    width: auto;
 }
 
 .reveal small,
 .reveal small * {
     vertical-align: inherit;
-}
-
-.reveal pre {
-    font-size: 0.8em;
-    width: auto;
 }
 
 .reveal ul ul {
