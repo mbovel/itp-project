@@ -123,7 +123,11 @@ Module Type BOOL_EQ.
   Notation "x =? y" := (beq x y) (at level 70).
   Axiom beq_correct : forall x y : A, (x =? y) = true <-> x = y.
 End BOOL_EQ.
+```
 
+<div class="fragment">
+
+```
 Module StringBoolEq <: BOOL_EQ.
   Definition A := string.
   Definition eq_dec := String.string_dec.
@@ -131,6 +135,8 @@ Module StringBoolEq <: BOOL_EQ.
   Definition beq_correct := String.eqb_eq.
 End StringBoolEq.
 ```
+
+</div>
 
 # Disjoint-set as a list of pairs
 
@@ -142,24 +148,42 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
 
 ---
 
+<div class="fragment">
+
 ```coq
   Fixpoint get (ds: D) (x: A) : option A :=
     match ds with
     | [] => None
     | (z, w)::ds' => if x =? z then Some w else get ds' x
     end.
-  
+```
+
+</div>
+
+<div class="fragment">
+
+```coq
   Definition repr (ds: D) (x: A) : A :=
     match get ds x with
     | Some y => y
     | None => x
     end.
+```
 
+</div>
+
+<div class="fragment">
+
+```coq
   Definition equiv (ds: D) (x y: A) : bool :=
     (repr ds x) =? (repr ds y).
 ```
 
+</div>
+
 ---
+
+<div class="fragment">
 
 ```coq
   Definition ensure_repr (ds: D) (x: A) : D :=
@@ -167,19 +191,33 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     | Some _ => ds
     | None => (x, x) :: ds
     end.
+```
 
+</div>
+
+<div class="fragment">
+
+```coq
   Fixpoint replace_values (ds: D) (v1 v2: A) : D :=
     match ds with
     | [] => []
     | (x, y)::ds' => (x, if y =? v1 then v2 else y) :: replace_values ds' v1 v2
     end.
+```
 
+</div>
+
+<div class="fragment">
+
+```coq
   Definition union (ds: D) (x y: A) : D :=
     let xr := (repr ds x) in
     let yr := (repr ds y) in
     let ds' := (ensure_repr (ensure_repr ds xr) yr) in
     (replace_values ds' yr xr).
 ```
+
+</div>
 
 # Proof intuition
 
@@ -202,7 +240,7 @@ Axiom make_correct: forall axms x y,
 2. or `x` was equivalent to `z` and `y` was equivalent to `w` with `axms`,
 3. or `x` was equivalent to `w` and `y` was equivalent to `z` with `axms`.
 
-<img src="res/EPFL-Coq-equivalence-classes.svg" height="428px" style="margin: 0 auto; display: block;">
+<img src="res/EPFL-Coq-equivalence-classes.svg" height="444px" style="margin: 0 auto; display: block;">
 
 ---
 
