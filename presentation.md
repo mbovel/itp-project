@@ -32,3 +32,26 @@ Module Type BOOL_EQ.
   Axiom beq_correct : forall x y : A, (x =? y) = true <-> x = y.
 End BOOL_EQ.
 ```
+
+# Introduction
+
+- **What?**
+  - Equivalence closure data structure in Coq
+  - Decision procedure for equivalent closure relations
+  - Correctness proof
+- **Why?**
+  - Used in many applications: type systems, SMT solvers, verification, ...
+  - Understand automatic reasoning about equality
+
+# Background
+
+- **Relation**
+  - Binary relation: $R \subseteq A \times A$
+  - Define $xRy$ as $(x, y) \in R$
+- **Equivalence closure**:
+  - Reflexive-symmetric-transitive closure of $R$
+  - $eq(R)$ is the smallest equivalence relation containing $R$
+  - Reflexive: $\forall x. \; x\ eq(R)\ x$
+  - Symmetric: $\forall x, y. \; x\ eq(R)\ y \Rightarrow  x\ eq(R)\ y$
+  - Transitive: $\forall x, y, z. \; x\ eq(R)\ y \land y\ eq(R)\ z \Rightarrow x\ eq(R)\ z$
+  - Contains $R$: $xRy \Rightarrow x\ eq(R)\ y$

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="generator" content="pandoc">
   <meta name="author" content="Samuel Chassot @LARA, EPFL Matt Bovel @LAMP/LARA, EPFL">
-  <meta name="dcterms.date" content="2024-05-28">
+  <meta name="dcterms.date" content="2024-05-29">
   <title>Equivalence Closure Data Structure in Coq</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,14 +20,35 @@
     div.columns{display: flex; gap: min(4vw, 1.5em);}
     div.column{flex: auto; overflow-x: auto;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    ul.task-list{list-style: none;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
     ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
       width: 0.8em;
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
     }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/reveal.js@^4//dist/theme/white.css" id="theme">
+  <script defer=""
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
   <link rel="stylesheet" href="presentation.css" />
 </head>
@@ -44,7 +65,7 @@ href="mailto:matthieu.bovel@epfl.ch">Matt Bovel</a> @<a
 href="https://www.epfl.ch/labs/lamp/">LAMP</a>/<a
 href="https://epfl-lara.github.io">LARA</a>, <a
 href="https://www.epfl.ch/fr/">EPFL</a></p>
-  <p class="date">May 28, 2024</p>
+  <p class="date">May 29, 2024</p>
 </section>
 
 <section id="scala-code-example" class="slide level2">
@@ -72,6 +93,50 @@ href="https://www.epfl.ch/fr/">EPFL</a></p>
   Notation &quot;x =? y&quot; := (beq x y) (at level 70).
   Axiom beq_correct : forall x y : A, (x =? y) = true &lt;-&gt; x = y.
 End BOOL_EQ.</code></pre>
+</section>
+<section id="introduction" class="slide level2">
+<h2>Introduction</h2>
+<ul>
+<li><strong>What?</strong>
+<ul>
+<li>Equivalence closure data structure in Coq</li>
+<li>Decision procedure for equivalent closure relations</li>
+<li>Correctness proof</li>
+</ul></li>
+<li><strong>Why?</strong>
+<ul>
+<li>Used in many applications: type systems, SMT solvers, verification,
+…</li>
+<li>Understand automatic reasoning about equality</li>
+</ul></li>
+</ul>
+</section>
+<section id="background" class="slide level2">
+<h2>Background</h2>
+<ul>
+<li><strong>Relation</strong>
+<ul>
+<li>Binary relation: <span class="math inline">R \subseteq A \times
+A</span></li>
+<li>Define <span class="math inline">xRy</span> as <span
+class="math inline">(x, y) \in R</span></li>
+</ul></li>
+<li><strong>Equivalence closure</strong>:
+<ul>
+<li>Reflexive-symmetric-transitive closure of <span
+class="math inline">R</span></li>
+<li><span class="math inline">eq(R)</span> is the smallest equivalence
+relation containing <span class="math inline">R</span></li>
+<li>Reflexive: <span class="math inline">\forall x. \; x\ eq(R)\
+x</span></li>
+<li>Symmetric: <span class="math inline">\forall x, y. \; x\ eq(R)\ y
+\Rightarrow  x\ eq(R)\ y</span></li>
+<li>Transitive: <span class="math inline">\forall x, y, z. \; x\ eq(R)\
+y \land y\ eq(R)\ z \Rightarrow x\ eq(R)\ z</span></li>
+<li>Contains <span class="math inline">R</span>: <span
+class="math inline">xRy \Rightarrow x\ eq(R)\ y</span></li>
+</ul></li>
+</ul>
 </section>
     </div>
   </div>
