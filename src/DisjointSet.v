@@ -492,22 +492,19 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     rewrite (replace_values_correct ds' x (repr ds w) (repr ds z)); auto.
   Qed.
       
-  Lemma make_correct_right: forall axms x y,
+  Theorem make_correct_right: forall axms x y,
     equiv (make_graph axms) x y = true -> eq axms x y.
   Proof.
     induction axms; intros.
     - apply eq_empty.
       unfold make_graph, equiv, repr, empty, get in H.
-      rewrite beq_correct in H.
+      beq_to_eq.
       assumption.
-    - destruct a as [z w].
-      (* IH: forall x y : A, equiv (make_graph axms) x y = true -> eq axms x y *)
-      (* H : equiv (make_graph ((z, w) :: axms)) x y = true *)
+    - destruct a as [z w]. simpl in H. remember (make_graph axms) as ds.
+      (* IH: forall x y : A, equiv ds x y = true -> eq axms x y *)
+      (* H : equiv (union ds z w) x y = true *)
       (* Goal: eq ((z, w) :: axms) x y *)
-      simpl in H.
       apply eq_nonempty.
-      (* Goal: eq axms x y \/ eq axms x z /\ eq axms y w \/ eq axms x w /\ eq axms y z *)
-      remember (make_graph axms) as ds.
       assert (forall x y : A, repr ds x = repr ds y -> eq axms x y) as IHaxms'.
       { intros. apply IHaxms. unfold equiv. beq_to_eq. assumption. }
       destruct (equiv ds x w) eqn:Hxw, (equiv ds y w) eqn:Hyw; unfold equiv in *; beq_to_eq.

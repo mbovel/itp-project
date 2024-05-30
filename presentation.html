@@ -353,36 +353,31 @@ Proof.
 </section>
 <section id="from-practice-to-theory" class="slide level2">
 <h2>From practice to theory</h2>
-<pre class="coq"><code>Lemma make_correct_right: forall axms x y,
+<pre class="coq"><code>Theorem make_correct_right: forall axms x y,
   equiv (make_graph axms) x y = true -&gt; eq axms x y.
 Proof.
   induction axms; intros.
   - ...
-  - destruct a as [z w].
-    (* IH: forall x y : A, equiv (make_graph axms) x y = true -&gt; eq axms x y *)
-    (* H : equiv (make_graph ((z, w) :: axms)) x y = true *)
+  - destruct a as [z w]. simpl in H. remember (make_graph axms) as ds.
+    (* IH: forall x y : A, equiv ds x y = true -&gt; eq axms x y *)
+    (* H : equiv (union ds z w) x y = true *)
     (* Goal: eq ((z, w) :: axms) x y *)
-    simpl in H.
     apply eq_nonempty.
-    (* Goal: eq axms x y \/ eq axms x z /\ eq axms y w \/ eq axms x w /\ eq axms y z *)
-    destruct (equiv (make_graph axms) x y) eqn:Hxy.
-    + left. apply IHaxms. assumption.
-    + remember (make_graph axms) as ds.
-      destruct (equiv ds x w) eqn:Hxw, (equiv ds y w) eqn:Hyw; unfold equiv in *; beq_to_eq.
-      * (* x and y are already equivalent in ds *) ...
-      * (* repr of x change, repr of y stays the same *) ...
-      * (* repr of x stays the same, repr of y change *) ...
-      * (* repr of x was not w and repr of y was not w *) ...
-        (* Contradiction *) ...
+    ...
+    destruct (equiv ds x w) eqn:Hxw, (equiv ds y w) eqn:Hyw; unfold equiv in *; beq_to_eq.
+    * (* x and y are already equivalent in ds *)
+    * (* repr of x change, repr of y stays the same *)
+    * (* repr of x stays the same, repr of y change *)
+    * (* repr of x was not w and repr of y was not w *)
 Qed.</code></pre>
 </section>
 <section class="slide level2">
 
 <p>Intermediate lemmas:</p>
 <pre class="coq"><code>Lemma union_repr_change: forall ds x w z,
-  repr ds x = repr ds w -&gt; repr (union ds z w) x = repr ds z.</code></pre>
+  repr ds x  = repr ds w -&gt; repr (union ds z w) x = repr ds z.</code></pre>
 <pre class="coq"><code>Lemma union_different_same_repr: forall ds x w z,
-    repr ds x &lt;&gt; repr ds w -&gt; repr (union ds z w) x = repr ds x.</code></pre>
+  repr ds x &lt;&gt; repr ds w -&gt; repr (union ds z w) x = repr ds x.</code></pre>
 </section>
 <section id="conclusion" class="slide level2">
 <h2>Conclusion</h2>
