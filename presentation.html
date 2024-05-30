@@ -71,6 +71,15 @@ href="https://www.epfl.ch/fr/">EPFL</a></p>
 <p>We proved that it can be used as a decision procedure for the
 <em>equivalence closure</em> of a relation.</p>
 </section>
+<section id="what-well-talk-about" class="slide level2">
+<h2>What we’ll talk about</h2>
+<ul>
+<li>What is a <em>disjoint set</em> and what do we call an
+<em>equivalence closure</em>?</li>
+<li>How can we implement a disjoint set in Scala? And in Coq?</li>
+<li>How did we prove the correctness of our Coq implementation?</li>
+</ul>
+</section>
 <section id="equivalence-closure-definition" class="slide level2">
 <h2>Equivalence closure definition</h2>
 <p>Let <span class="math inline">R \subseteq A \times A</span> be a
@@ -184,7 +193,7 @@ End DISJOINT_SET.</code></pre>
   Axiom beq_correct : forall x y : A, (x =? y) = true &lt;-&gt; x = y.
 End BOOL_EQ.</code></pre>
 <div class="fragment">
-<pre><code>Module StringBoolEq &lt;: BOOL_EQ.
+<pre class="coq"><code>Module StringBoolEq &lt;: BOOL_EQ.
   Definition A := string.
   Definition eq_dec := String.string_dec.
   Definition beq := String.eqb.
@@ -201,46 +210,46 @@ End StringBoolEq.</code></pre>
 <section class="slide level2">
 
 <div class="fragment">
-<pre class="coq"><code>  Fixpoint get (ds: D) (x: A) : option A :=
-    match ds with
-    | [] =&gt; None
-    | (z, w)::ds&#39; =&gt; if x =? z then Some w else get ds&#39; x
-    end.</code></pre>
+<pre class="coq"><code>Fixpoint get (ds: D) (x: A) : option A :=
+  match ds with
+  | [] =&gt; None
+  | (z, w)::ds&#39; =&gt; if x =? z then Some w else get ds&#39; x
+  end.</code></pre>
 </div>
 <div class="fragment">
-<pre class="coq"><code>  Definition repr (ds: D) (x: A) : A :=
-    match get ds x with
-    | Some y =&gt; y
-    | None =&gt; x
-    end.</code></pre>
+<pre class="coq"><code>Definition repr (ds: D) (x: A) : A :=
+  match get ds x with
+  | Some y =&gt; y
+  | None =&gt; x
+  end.</code></pre>
 </div>
 <div class="fragment">
-<pre class="coq"><code>  Definition equiv (ds: D) (x y: A) : bool :=
-    (repr ds x) =? (repr ds y).</code></pre>
+<pre class="coq"><code>Definition equiv (ds: D) (x y: A) : bool :=
+  (repr ds x) =? (repr ds y).</code></pre>
 </div>
 </section>
 <section class="slide level2">
 
 <div class="fragment">
-<pre class="coq"><code>  Definition ensure_repr (ds: D) (x: A) : D :=
-    match get ds x with
-    | Some _ =&gt; ds
-    | None =&gt; (x, x) :: ds
-    end.</code></pre>
+<pre class="coq"><code>Definition ensure_repr (ds: D) (x: A) : D :=
+  match get ds x with
+  | Some _ =&gt; ds
+  | None =&gt; (x, x) :: ds
+  end.</code></pre>
 </div>
 <div class="fragment">
-<pre class="coq"><code>  Fixpoint replace_values (ds: D) (v1 v2: A) : D :=
-    match ds with
-    | [] =&gt; []
-    | (x, y)::ds&#39; =&gt; (x, if y =? v1 then v2 else y) :: replace_values ds&#39; v1 v2
-    end.</code></pre>
+<pre class="coq"><code>Fixpoint replace_values (ds: D) (v1 v2: A) : D :=
+  match ds with
+  | [] =&gt; []
+  | (x, y)::ds&#39; =&gt; (x, if y =? v1 then v2 else y) :: replace_values ds&#39; v1 v2
+  end.</code></pre>
 </div>
 <div class="fragment">
-<pre class="coq"><code>  Definition union (ds: D) (x y: A) : D :=
-    let xr := (repr ds x) in
-    let yr := (repr ds y) in
-    let ds&#39; := (ensure_repr (ensure_repr ds xr) yr) in
-    (replace_values ds&#39; yr xr).</code></pre>
+<pre class="coq"><code>Definition union (ds: D) (x y: A) : D :=
+  let xr := (repr ds x) in
+  let yr := (repr ds y) in
+  let ds&#39; := (ensure_repr (ensure_repr ds xr) yr) in
+  (replace_values ds&#39; yr xr).</code></pre>
 </div>
 </section>
 <section id="proof-intuition" class="slide level2">
@@ -279,7 +288,7 @@ hypothesis? How to relate <code>eq axms x y</code> to
      \/ (eq axms x z /\ eq axms y w)
      \/ (eq axms x w /\ eq axms y z)
    )
-   &lt;-&gt; eq ((z, w) :: axms) x y.</code></pre>
+   -&gt; eq ((z, w) :: axms) x y.</code></pre>
 <div class="fragment">
 <p>And the other direction:</p>
 <pre class="coq"><code>Lemma eq_nonempty_inverse: forall {A} (x y z w: A) (axms: list (A * A)),
@@ -303,35 +312,13 @@ Proof.
     (* H: eq ((z, w) :: axms) x y *)
     (* Goal: equiv (make_graph ((z, w) :: axms)) x y = true *)
     apply eq_nonempty_inverse in H.
-    destruct H.
-    + (* x was already equivlent to y in axms *)
-      (* H: eq axms x y *)
-      apply IHaxms in H.
-      (* H: equiv (make_graph axms) x y = true *)
-      apply union_mono.
-      assumption.
-    + destruct H.
-      * (* x was equivalent to z and y was equivalent to w in axms *)
-        destruct H as [H1 H2].
-        (* H1: eq axms x z *)
-        (* H2: eq axms w y *)
-        apply IHaxms in H1, H2.
-        (* H1: equiv (make_graph axms) z x = true *)
-        (* H2: equiv (make_graph axms) w y = true *)
-        apply union_correct; assumption.
-      * (* x was equivalent to z and y was equivalent to w in axms *)
-        destruct H as [H1 H2].
-        (* H1: eq axms x x *)
-        (* H2: eq axms z y *)
-        apply IHaxms in H1, H2.
-        ...</code></pre>
+    (* Prove the 3 cases using union_correct and union_mono *)</code></pre>
 </section>
 <section class="slide level2">
 
 <p>Intermediate lemmas:</p>
 <pre class="coq"><code>Theorem union_correct: forall ds w x z y,
-  (equiv ds w x = true) -&gt;
-  (equiv ds z y = true) -&gt;
+  (equiv ds w x = true) -&gt; (equiv ds z y = true) -&gt;
   (equiv (union ds w z) x y = true).
 Proof.
   intros. unfold union. unfold equiv in H, H0. beq_to_eq.
@@ -342,8 +329,7 @@ Proof.
 Qed.</code></pre>
 <div class="fragment">
 <pre class="coq"><code>Lemma union_correct_1: forall ds x xr y yr,
-  (get ds x) = Some xr -&gt;
-  (get ds y) = Some yr -&gt;
+  (get ds x) = Some xr -&gt; (get ds y) = Some yr -&gt;
   (equiv (replace_values ds yr xr) x y = true).</code></pre>
 </div>
 </section>
@@ -382,36 +368,21 @@ Proof.
     destruct (equiv (make_graph axms) x y) eqn:Hxy.
     + left. apply IHaxms. assumption.
     + remember (make_graph axms) as ds.
-      assert (forall x y : A, repr ds x = repr ds y -&gt; eq axms x y) as IHaxms&#39;.
-      { intros. apply IHaxms. unfold equiv. beq_to_eq. assumption. }
       destruct (equiv ds x w) eqn:Hxw, (equiv ds y w) eqn:Hyw; unfold equiv in *; beq_to_eq.
-      * (* x and y are already equivalent in ds *)
-        assert (repr ds x = repr ds y) by congruence.
-        left. apply IHaxms. beq_to_eq. assumption.
-      * (* repr of x change, repr of y stays the same *)
-        pose proof (union_repr_change ds x w z Hxw) as H1.
-        pose proof (union_different_same_repr ds z w y Hyw) as H2.
-        right. right. split; apply IHaxms&#39;; congruence.
-      * (* repr of x stays the same, repr of y change *)
-        pose proof (union_different_same_repr ds z w x Hxw) as H2.
-        pose proof (union_repr_change ds y w z Hyw) as H1.
-        right. left. split; apply IHaxms&#39;; congruence.
-      * (* repr of x was not w and repr of y was not w *)
-        pose proof (union_different_same_repr ds z w x Hxw) as H1.
-        pose proof (union_different_same_repr ds z w y Hyw) as H2.
-        (* Contradiction *)
-        right. congruence.
+      * (* x and y are already equivalent in ds *) ...
+      * (* repr of x change, repr of y stays the same *) ...
+      * (* repr of x stays the same, repr of y change *) ...
+      * (* repr of x was not w and repr of y was not w *) ...
+        (* Contradiction *) ...
 Qed.</code></pre>
 </section>
 <section class="slide level2">
 
 <p>Intermediate lemmas:</p>
-<pre class="coq"><code>Lemma union_different_same_repr: forall ds x y z,
-    repr ds z &lt;&gt; repr ds y -&gt; repr (union ds x y) z = repr ds z.</code></pre>
 <pre class="coq"><code>Lemma union_repr_change: forall ds x w z,
-  repr ds x = repr ds w -&gt;
-  repr (union ds z w) x = repr ds z.
-Proof.</code></pre>
+  repr ds x = repr ds w -&gt; repr (union ds z w) x = repr ds z.</code></pre>
+<pre class="coq"><code>Lemma union_different_same_repr: forall ds x w z,
+    repr ds x &lt;&gt; repr ds w -&gt; repr (union ds z w) x = repr ds x.</code></pre>
 </section>
 <section id="conclusion" class="slide level2">
 <h2>Conclusion</h2>
