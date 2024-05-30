@@ -507,28 +507,24 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       simpl in H.
       apply eq_nonempty.
       (* Goal: eq axms x y \/ eq axms x z /\ eq axms y w \/ eq axms x w /\ eq axms y z *)
-      destruct (equiv (make_graph axms) x y) eqn:Hxy.
-      + left. apply IHaxms. assumption.
-      + remember (make_graph axms) as ds.
-        assert (forall x y : A, repr ds x = repr ds y -> eq axms x y) as IHaxms'.
-        { intros. apply IHaxms. unfold equiv. beq_to_eq. assumption. }
-        destruct (equiv ds x w) eqn:Hxw, (equiv ds y w) eqn:Hyw; unfold equiv in *; beq_to_eq.
-        * (* x and y are already equivalent in ds *)
-          assert (repr ds x = repr ds y) by congruence.
-          left. apply IHaxms. beq_to_eq. assumption.
-        * (* repr of x change, repr of y stays the same *)
-          pose proof (union_repr_change ds x w z Hxw) as H1.
-          pose proof (union_different_same_repr ds z w y Hyw) as H2.
-          right. right. split; apply IHaxms'; congruence.
-        * (* repr of x stays the same, repr of y change *)
-          pose proof (union_different_same_repr ds z w x Hxw) as H2.
-          pose proof (union_repr_change ds y w z Hyw) as H1.
-          right. left. split; apply IHaxms'; congruence.
-        * (* repr of x was not w and repr of y was not w *)
-          pose proof (union_different_same_repr ds z w x Hxw) as H1.
-          pose proof (union_different_same_repr ds z w y Hyw) as H2.
-          (* Contradiction *)
-          right. congruence.
+      remember (make_graph axms) as ds.
+      assert (forall x y : A, repr ds x = repr ds y -> eq axms x y) as IHaxms'.
+      { intros. apply IHaxms. unfold equiv. beq_to_eq. assumption. }
+      destruct (equiv ds x w) eqn:Hxw, (equiv ds y w) eqn:Hyw; unfold equiv in *; beq_to_eq.
+      * (* x and y are already equivalent in ds *)
+        left. apply IHaxms. beq_to_eq. congruence.
+      * (* repr of x change, repr of y stays the same *)
+        pose proof (union_repr_change ds x w z Hxw) as H1.
+        pose proof (union_different_same_repr ds z w y Hyw) as H2.
+        right. right. split; apply IHaxms'; congruence.
+      * (* repr of x stays the same, repr of y change *)
+        pose proof (union_different_same_repr ds z w x Hxw) as H2.
+        pose proof (union_repr_change ds y w z Hyw) as H1.
+        right. left. split; apply IHaxms'; congruence.
+      * (* repr of x was not w and repr of y was not w *)
+        pose proof (union_different_same_repr ds z w x Hxw) as H1.
+        pose proof (union_different_same_repr ds z w y Hyw) as H2.
+        left. apply IHaxms. beq_to_eq. congruence.
   Qed.
 
   Theorem make_correct: forall axms x y,
