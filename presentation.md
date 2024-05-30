@@ -302,28 +302,7 @@ Proof.
     (* H: eq ((z, w) :: axms) x y *)
     (* Goal: equiv (make_graph ((z, w) :: axms)) x y = true *)
     apply eq_nonempty_inverse in H.
-    destruct H.
-    + (* x was already equivlent to y in axms *)
-      (* H: eq axms x y *)
-      apply IHaxms in H.
-      (* H: equiv (make_graph axms) x y = true *)
-      apply union_mono.
-      assumption.
-    + destruct H.
-      * (* x was equivalent to z and y was equivalent to w in axms *)
-        destruct H as [H1 H2].
-        (* H1: eq axms x z *)
-        (* H2: eq axms w y *)
-        apply IHaxms in H1, H2.
-        (* H1: equiv (make_graph axms) z x = true *)
-        (* H2: equiv (make_graph axms) w y = true *)
-        apply union_correct; assumption.
-      * (* x was equivalent to z and y was equivalent to w in axms *)
-        destruct H as [H1 H2].
-        (* H1: eq axms x x *)
-        (* H2: eq axms z y *)
-        apply IHaxms in H1, H2.
-        ...
+    (* Prove the 3 cases using union_correct and union_mono *)
 ```
 
 ---
@@ -332,8 +311,7 @@ Intermediate lemmas:
 
 ```coq
 Theorem union_correct: forall ds w x z y,
-  (equiv ds w x = true) ->
-  (equiv ds z y = true) ->
+  (equiv ds w x = true) -> (equiv ds z y = true) ->
   (equiv (union ds w z) x y = true).
 Proof.
   intros. unfold union. unfold equiv in H, H0. beq_to_eq.
@@ -348,8 +326,7 @@ Qed.
 
 ```coq
 Lemma union_correct_1: forall ds x xr y yr,
-  (get ds x) = Some xr ->
-  (get ds y) = Some yr ->
+  (get ds x) = Some xr -> (get ds y) = Some yr ->
   (equiv (replace_values ds yr xr) x y = true).
 ```
 
@@ -393,25 +370,12 @@ Proof.
     destruct (equiv (make_graph axms) x y) eqn:Hxy.
     + left. apply IHaxms. assumption.
     + remember (make_graph axms) as ds.
-      assert (forall x y : A, repr ds x = repr ds y -> eq axms x y) as IHaxms'.
-      { intros. apply IHaxms. unfold equiv. beq_to_eq. assumption. }
       destruct (equiv ds x w) eqn:Hxw, (equiv ds y w) eqn:Hyw; unfold equiv in *; beq_to_eq.
-      * (* x and y are already equivalent in ds *)
-        assert (repr ds x = repr ds y) by congruence.
-        left. apply IHaxms. beq_to_eq. assumption.
-      * (* repr of x change, repr of y stays the same *)
-        pose proof (union_repr_change ds x w z Hxw) as H1.
-        pose proof (union_different_same_repr ds z w y Hyw) as H2.
-        right. right. split; apply IHaxms'; congruence.
-      * (* repr of x stays the same, repr of y change *)
-        pose proof (union_different_same_repr ds z w x Hxw) as H2.
-        pose proof (union_repr_change ds y w z Hyw) as H1.
-        right. left. split; apply IHaxms'; congruence.
-      * (* repr of x was not w and repr of y was not w *)
-        pose proof (union_different_same_repr ds z w x Hxw) as H1.
-        pose proof (union_different_same_repr ds z w y Hyw) as H2.
-        (* Contradiction *)
-        right. congruence.
+      * (* x and y are already equivalent in ds *) ...
+      * (* repr of x change, repr of y stays the same *) ...
+      * (* repr of x stays the same, repr of y change *) ...
+      * (* repr of x was not w and repr of y was not w *) ...
+        (* Contradiction *) ...
 Qed.
 ```
 
@@ -420,15 +384,13 @@ Qed.
 Intermediate lemmas:
 
 ```coq
-Lemma union_different_same_repr: forall ds x y z,
-    repr ds z <> repr ds y -> repr (union ds x y) z = repr ds z.
+Lemma union_repr_change: forall ds x w z,
+  repr ds x = repr ds w -> repr (union ds z w) x = repr ds z.
 ```
 
 ```coq
-Lemma union_repr_change: forall ds x w z,
-  repr ds x = repr ds w ->
-  repr (union ds z w) x = repr ds z.
-Proof.
+Lemma union_different_same_repr: forall ds x w z,
+    repr ds x <> repr ds w -> repr (union ds z w) x = repr ds x.
 ```
 
 # Conclusion

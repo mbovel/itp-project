@@ -301,19 +301,19 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     pose term as name;
     change term with name.
 
-  Lemma union_different_same_repr: forall ds x y z,
-    repr ds z <> repr ds y -> repr (union ds x y) z = repr ds z.
+  Lemma union_different_same_repr: forall ds z w x,
+    repr ds x <> repr ds w -> repr (union ds z w) x = repr ds x.
   Proof.
     intros.
     unfold union.
-    name_term (ensure_repr (ensure_repr ds (repr ds x)) (repr ds y)) ds'.
-    assert (repr ds' z = repr ds z). { eauto using ensure_repr_preserve. }
-    assert (repr ds' y = repr ds y). { eauto using ensure_repr_preserve. }
+    name_term (ensure_repr (ensure_repr ds (repr ds z)) (repr ds w)) ds'.
+    assert (repr ds' x = repr ds x). { eauto using ensure_repr_preserve. }
+    assert (repr ds' w = repr ds w). { eauto using ensure_repr_preserve. }
     unfold repr at 1.
-    destruct (get ds' z) as [rz|] eqn:Hgetz.
-    - assert (repr ds z = rz). { apply get_repr in Hgetz. congruence. }
+    destruct (get ds' x) as [rz|] eqn:Hgetz.
+    - assert (repr ds x = rz). { apply get_repr in Hgetz. congruence. }
       rewrite replace_values_correct_neq with (v := rz); congruence.
-    - assert (repr ds z = z). { rewrite <- H0. unfold repr. rewrite Hgetz. reflexivity. }
+    - assert (repr ds x = x). { rewrite <- H0. unfold repr. rewrite Hgetz. reflexivity. }
       rewrite replace_values_correct_neq_none; congruence.
   Qed.
 

@@ -17,14 +17,14 @@ Module StringEqExample.
 
    Lemma test: (eq l "a" "b").
    Proof.
-      econstructor. simpl. left. reflexivity.
+      eapply eq_axms. simpl. left. reflexivity.
    Qed.
 
    Lemma test2: (eq l "a" "c").
    Proof.
       eapply eq_trans.
       - eapply eq_axms. simpl. left. reflexivity.
-      - apply eq_axms. simpl. right. left. reflexivity.
+      - eapply eq_axms. simpl. right. left. reflexivity.
    Qed.
 End StringEqExample.
 

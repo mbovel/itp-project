@@ -312,35 +312,13 @@ Proof.
     (* H: eq ((z, w) :: axms) x y *)
     (* Goal: equiv (make_graph ((z, w) :: axms)) x y = true *)
     apply eq_nonempty_inverse in H.
-    destruct H.
-    + (* x was already equivlent to y in axms *)
-      (* H: eq axms x y *)
-      apply IHaxms in H.
-      (* H: equiv (make_graph axms) x y = true *)
-      apply union_mono.
-      assumption.
-    + destruct H.
-      * (* x was equivalent to z and y was equivalent to w in axms *)
-        destruct H as [H1 H2].
-        (* H1: eq axms x z *)
-        (* H2: eq axms w y *)
-        apply IHaxms in H1, H2.
-        (* H1: equiv (make_graph axms) z x = true *)
-        (* H2: equiv (make_graph axms) w y = true *)
-        apply union_correct; assumption.
-      * (* x was equivalent to z and y was equivalent to w in axms *)
-        destruct H as [H1 H2].
-        (* H1: eq axms x x *)
-        (* H2: eq axms z y *)
-        apply IHaxms in H1, H2.
-        ...</code></pre>
+    (* Prove the 3 cases using union_correct and union_mono *)</code></pre>
 </section>
 <section class="slide level2">
 
 <p>Intermediate lemmas:</p>
 <pre class="coq"><code>Theorem union_correct: forall ds w x z y,
-  (equiv ds w x = true) -&gt;
-  (equiv ds z y = true) -&gt;
+  (equiv ds w x = true) -&gt; (equiv ds z y = true) -&gt;
   (equiv (union ds w z) x y = true).
 Proof.
   intros. unfold union. unfold equiv in H, H0. beq_to_eq.
@@ -351,8 +329,7 @@ Proof.
 Qed.</code></pre>
 <div class="fragment">
 <pre class="coq"><code>Lemma union_correct_1: forall ds x xr y yr,
-  (get ds x) = Some xr -&gt;
-  (get ds y) = Some yr -&gt;
+  (get ds x) = Some xr -&gt; (get ds y) = Some yr -&gt;
   (equiv (replace_values ds yr xr) x y = true).</code></pre>
 </div>
 </section>
@@ -391,36 +368,21 @@ Proof.
     destruct (equiv (make_graph axms) x y) eqn:Hxy.
     + left. apply IHaxms. assumption.
     + remember (make_graph axms) as ds.
-      assert (forall x y : A, repr ds x = repr ds y -&gt; eq axms x y) as IHaxms&#39;.
-      { intros. apply IHaxms. unfold equiv. beq_to_eq. assumption. }
       destruct (equiv ds x w) eqn:Hxw, (equiv ds y w) eqn:Hyw; unfold equiv in *; beq_to_eq.
-      * (* x and y are already equivalent in ds *)
-        assert (repr ds x = repr ds y) by congruence.
-        left. apply IHaxms. beq_to_eq. assumption.
-      * (* repr of x change, repr of y stays the same *)
-        pose proof (union_repr_change ds x w z Hxw) as H1.
-        pose proof (union_different_same_repr ds z w y Hyw) as H2.
-        right. right. split; apply IHaxms&#39;; congruence.
-      * (* repr of x stays the same, repr of y change *)
-        pose proof (union_different_same_repr ds z w x Hxw) as H2.
-        pose proof (union_repr_change ds y w z Hyw) as H1.
-        right. left. split; apply IHaxms&#39;; congruence.
-      * (* repr of x was not w and repr of y was not w *)
-        pose proof (union_different_same_repr ds z w x Hxw) as H1.
-        pose proof (union_different_same_repr ds z w y Hyw) as H2.
-        (* Contradiction *)
-        right. congruence.
+      * (* x and y are already equivalent in ds *) ...
+      * (* repr of x change, repr of y stays the same *) ...
+      * (* repr of x stays the same, repr of y change *) ...
+      * (* repr of x was not w and repr of y was not w *) ...
+        (* Contradiction *) ...
 Qed.</code></pre>
 </section>
 <section class="slide level2">
 
 <p>Intermediate lemmas:</p>
-<pre class="coq"><code>Lemma union_different_same_repr: forall ds x y z,
-    repr ds z &lt;&gt; repr ds y -&gt; repr (union ds x y) z = repr ds z.</code></pre>
 <pre class="coq"><code>Lemma union_repr_change: forall ds x w z,
-  repr ds x = repr ds w -&gt;
-  repr (union ds z w) x = repr ds z.
-Proof.</code></pre>
+  repr ds x = repr ds w -&gt; repr (union ds z w) x = repr ds z.</code></pre>
+<pre class="coq"><code>Lemma union_different_same_repr: forall ds x w z,
+    repr ds x &lt;&gt; repr ds w -&gt; repr (union ds z w) x = repr ds x.</code></pre>
 </section>
 <section id="conclusion" class="slide level2">
 <h2>Conclusion</h2>
