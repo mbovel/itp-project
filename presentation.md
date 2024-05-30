@@ -138,7 +138,7 @@ End BOOL_EQ.
 
 <div class="fragment">
 
-```
+```coq
 Module StringBoolEq <: BOOL_EQ.
   Definition A := string.
   Definition eq_dec := String.string_dec.
@@ -162,11 +162,11 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
 <div class="fragment">
 
 ```coq
-  Fixpoint get (ds: D) (x: A) : option A :=
-    match ds with
-    | [] => None
-    | (z, w)::ds' => if x =? z then Some w else get ds' x
-    end.
+Fixpoint get (ds: D) (x: A) : option A :=
+  match ds with
+  | [] => None
+  | (z, w)::ds' => if x =? z then Some w else get ds' x
+  end.
 ```
 
 </div>
@@ -174,11 +174,11 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
 <div class="fragment">
 
 ```coq
-  Definition repr (ds: D) (x: A) : A :=
-    match get ds x with
-    | Some y => y
-    | None => x
-    end.
+Definition repr (ds: D) (x: A) : A :=
+  match get ds x with
+  | Some y => y
+  | None => x
+  end.
 ```
 
 </div>
@@ -186,8 +186,8 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
 <div class="fragment">
 
 ```coq
-  Definition equiv (ds: D) (x y: A) : bool :=
-    (repr ds x) =? (repr ds y).
+Definition equiv (ds: D) (x y: A) : bool :=
+  (repr ds x) =? (repr ds y).
 ```
 
 </div>
@@ -197,11 +197,11 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
 <div class="fragment">
 
 ```coq
-  Definition ensure_repr (ds: D) (x: A) : D :=
-    match get ds x with
-    | Some _ => ds
-    | None => (x, x) :: ds
-    end.
+Definition ensure_repr (ds: D) (x: A) : D :=
+  match get ds x with
+  | Some _ => ds
+  | None => (x, x) :: ds
+  end.
 ```
 
 </div>
@@ -209,11 +209,11 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
 <div class="fragment">
 
 ```coq
-  Fixpoint replace_values (ds: D) (v1 v2: A) : D :=
-    match ds with
-    | [] => []
-    | (x, y)::ds' => (x, if y =? v1 then v2 else y) :: replace_values ds' v1 v2
-    end.
+Fixpoint replace_values (ds: D) (v1 v2: A) : D :=
+  match ds with
+  | [] => []
+  | (x, y)::ds' => (x, if y =? v1 then v2 else y) :: replace_values ds' v1 v2
+  end.
 ```
 
 </div>
@@ -221,11 +221,11 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
 <div class="fragment">
 
 ```coq
-  Definition union (ds: D) (x y: A) : D :=
-    let xr := (repr ds x) in
-    let yr := (repr ds y) in
-    let ds' := (ensure_repr (ensure_repr ds xr) yr) in
-    (replace_values ds' yr xr).
+Definition union (ds: D) (x y: A) : D :=
+  let xr := (repr ds x) in
+  let yr := (repr ds y) in
+  let ds' := (ensure_repr (ensure_repr ds xr) yr) in
+  (replace_values ds' yr xr).
 ```
 
 </div>
@@ -264,7 +264,7 @@ Lemma eq_nonempty: forall {A} (x y z w: A) (axms: list (A * A)),
      \/ (eq axms x z /\ eq axms y w)
      \/ (eq axms x w /\ eq axms y z)
    )
-   <-> eq ((z, w) :: axms) x y.
+   -> eq ((z, w) :: axms) x y.
 ```
 
 <div class="fragment">
