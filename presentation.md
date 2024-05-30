@@ -9,6 +9,12 @@ We implemented a *disjoint set* data structure in Coq.
 
 We proved that it can be used as a decision procedure for the *equivalence closure* of a relation.
 
+# What we'll talk about
+
+- What is a *disjoint set* and what do we call an *equivalence closure*?
+- How can we implement a disjoint set in Scala? And in Coq?
+- How did we prove the correctness of our Coq implementation?
+
 # Equivalence closure definition
 
 

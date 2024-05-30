@@ -71,6 +71,15 @@ href="https://www.epfl.ch/fr/">EPFL</a></p>
 <p>We proved that it can be used as a decision procedure for the
 <em>equivalence closure</em> of a relation.</p>
 </section>
+<section id="what-well-talk-about" class="slide level2">
+<h2>What we’ll talk about</h2>
+<ul>
+<li>What is a <em>disjoint set</em> and what do we call an
+<em>equivalence closure</em>?</li>
+<li>How can we implement a disjoint set in Scala? And in Coq?</li>
+<li>How did we prove the correctness of our Coq implementation?</li>
+</ul>
+</section>
 <section id="equivalence-closure-definition" class="slide level2">
 <h2>Equivalence closure definition</h2>
 <p>Let <span class="math inline">R \subseteq A \times A</span> be a
@@ -184,7 +193,7 @@ End DISJOINT_SET.</code></pre>
   Axiom beq_correct : forall x y : A, (x =? y) = true &lt;-&gt; x = y.
 End BOOL_EQ.</code></pre>
 <div class="fragment">
-<pre><code>Module StringBoolEq &lt;: BOOL_EQ.
+<pre class="coq"><code>Module StringBoolEq &lt;: BOOL_EQ.
   Definition A := string.
   Definition eq_dec := String.string_dec.
   Definition beq := String.eqb.
@@ -201,46 +210,46 @@ End StringBoolEq.</code></pre>
 <section class="slide level2">
 
 <div class="fragment">
-<pre class="coq"><code>  Fixpoint get (ds: D) (x: A) : option A :=
-    match ds with
-    | [] =&gt; None
-    | (z, w)::ds&#39; =&gt; if x =? z then Some w else get ds&#39; x
-    end.</code></pre>
+<pre class="coq"><code>Fixpoint get (ds: D) (x: A) : option A :=
+  match ds with
+  | [] =&gt; None
+  | (z, w)::ds&#39; =&gt; if x =? z then Some w else get ds&#39; x
+  end.</code></pre>
 </div>
 <div class="fragment">
-<pre class="coq"><code>  Definition repr (ds: D) (x: A) : A :=
-    match get ds x with
-    | Some y =&gt; y
-    | None =&gt; x
-    end.</code></pre>
+<pre class="coq"><code>Definition repr (ds: D) (x: A) : A :=
+  match get ds x with
+  | Some y =&gt; y
+  | None =&gt; x
+  end.</code></pre>
 </div>
 <div class="fragment">
-<pre class="coq"><code>  Definition equiv (ds: D) (x y: A) : bool :=
-    (repr ds x) =? (repr ds y).</code></pre>
+<pre class="coq"><code>Definition equiv (ds: D) (x y: A) : bool :=
+  (repr ds x) =? (repr ds y).</code></pre>
 </div>
 </section>
 <section class="slide level2">
 
 <div class="fragment">
-<pre class="coq"><code>  Definition ensure_repr (ds: D) (x: A) : D :=
-    match get ds x with
-    | Some _ =&gt; ds
-    | None =&gt; (x, x) :: ds
-    end.</code></pre>
+<pre class="coq"><code>Definition ensure_repr (ds: D) (x: A) : D :=
+  match get ds x with
+  | Some _ =&gt; ds
+  | None =&gt; (x, x) :: ds
+  end.</code></pre>
 </div>
 <div class="fragment">
-<pre class="coq"><code>  Fixpoint replace_values (ds: D) (v1 v2: A) : D :=
-    match ds with
-    | [] =&gt; []
-    | (x, y)::ds&#39; =&gt; (x, if y =? v1 then v2 else y) :: replace_values ds&#39; v1 v2
-    end.</code></pre>
+<pre class="coq"><code>Fixpoint replace_values (ds: D) (v1 v2: A) : D :=
+  match ds with
+  | [] =&gt; []
+  | (x, y)::ds&#39; =&gt; (x, if y =? v1 then v2 else y) :: replace_values ds&#39; v1 v2
+  end.</code></pre>
 </div>
 <div class="fragment">
-<pre class="coq"><code>  Definition union (ds: D) (x y: A) : D :=
-    let xr := (repr ds x) in
-    let yr := (repr ds y) in
-    let ds&#39; := (ensure_repr (ensure_repr ds xr) yr) in
-    (replace_values ds&#39; yr xr).</code></pre>
+<pre class="coq"><code>Definition union (ds: D) (x y: A) : D :=
+  let xr := (repr ds x) in
+  let yr := (repr ds y) in
+  let ds&#39; := (ensure_repr (ensure_repr ds xr) yr) in
+  (replace_values ds&#39; yr xr).</code></pre>
 </div>
 </section>
 <section id="proof-intuition" class="slide level2">
@@ -279,7 +288,7 @@ hypothesis? How to relate <code>eq axms x y</code> to
      \/ (eq axms x z /\ eq axms y w)
      \/ (eq axms x w /\ eq axms y z)
    )
-   &lt;-&gt; eq ((z, w) :: axms) x y.</code></pre>
+   -&gt; eq ((z, w) :: axms) x y.</code></pre>
 <div class="fragment">
 <p>And the other direction:</p>
 <pre class="coq"><code>Lemma eq_nonempty_inverse: forall {A} (x y z w: A) (axms: list (A * A)),
