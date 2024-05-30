@@ -1,5 +1,6 @@
 ---
 title: Disjoint Set Implementation in Coq
+subtitle: "[go.epfl.ch/disjoint-set](https://go.epfl.ch/disjoint-set)"
 author: "[Samuel Chassot](mailto:samuel.chassot@epfl.ch) @[LARA](https://epfl-lara.github.io), [EPFL](https://www.epfl.ch/fr/)<br/>[Matt Bovel](mailto:matthieu.bovel@epfl.ch) @[LAMP](https://www.epfl.ch/labs/lamp/)/[LARA](https://epfl-lara.github.io), [EPFL](https://www.epfl.ch/fr/)"
 ---
 
@@ -391,3 +392,5 @@ Lemma union_different_same_repr: forall ds x w z,
 # Conclusion
 
 We implemented a disjoint-set data structure in Coq and proved its correctness.
+
+457 lines of Coq code.
