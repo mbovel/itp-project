@@ -356,59 +356,19 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
   Proof.
     intros. 
     unfold equiv in *.
-    beq_to_eq.
-    remember (repr ds y) as yr.
-    remember (repr ds x) as xr.
-    remember (repr ds z) as zr.
-    remember (repr ds w) as wr.
-    destruct (xr =? zr) eqn:Heq.
-    + (* In this case, the representant of x and y will change to become wr, but still the same *)
-      apply beq_correct in Heq.
-      assert (equiv ds x y = true); try unfold equiv; try rewrite beq_correct; try congruence.
-      assert (equiv ds x z = true); try unfold equiv; try rewrite beq_correct; try congruence.
-      assert (equiv ds y z = true); try unfold equiv; try rewrite beq_correct; try congruence.
-      assert (equiv ds z y = true); try unfold equiv; try rewrite beq_correct; try congruence.
-
-    
-      assert (equiv ds z z = true); try unfold equiv; try rewrite beq_correct; try congruence.
-      assert (equiv ds w w = true); try unfold equiv; try rewrite beq_correct; try congruence.
-      assert (equiv ds z x = true); try unfold equiv; try rewrite beq_correct; try congruence.
-
-      pose proof (union_correct ds w w z x). 
-      rewrite H5 in H7. rewrite H6 in H7.
-      specialize (H7 (reflexivity _) (reflexivity _)).
-      pose proof (union_correct ds w w z y). 
-      rewrite H5 in H8. rewrite H3 in H8.
-      specialize (H8 (reflexivity _) (reflexivity _)).
-      unfold equiv in H7, H8. rewrite beq_correct in H7, H8. congruence.
-
-    (* Uneeded case analysis on xr =? wr, kept as reference *)
-    (* destruct (xr =? wr) eqn:Heqxrwr.
-    - apply beq_correct in Heqxrwr.
-      assert (equiv ds w x = true); try unfold equiv; try rewrite beq_correct; try congruence.
-      pose proof (union_correct ds  w x z y).
-      rewrite H4 in H5. rewrite H3 in H5. 
-      specialize (H5 (reflexivity _) (reflexivity _)).
-      unfold equiv in H5. rewrite beq_correct in H5. congruence.
-    - rewrite beq_correct_false in Heqxrwr. 
-      assert (equiv ds x w = false); try unfold equiv; try rewrite beq_correct_false; try congruence.
-      assert (equiv ds w x = false); try unfold equiv; try rewrite beq_correct_false; try congruence.
-      assert (equiv ds z z = true); try unfold equiv; try rewrite beq_correct; try congruence.
-      assert (equiv ds w w = true); try unfold equiv; try rewrite beq_correct; try congruence.
-      assert (equiv ds z x = true); try unfold equiv; try rewrite beq_correct; try congruence.
-      pose proof (union_correct ds w w z x). 
-      rewrite H7 in H9. rewrite H8 in H9.
-      specialize (H9 (reflexivity _) (reflexivity _)).
-      pose proof (union_correct ds w w z y). 
-      rewrite H7 in H10. rewrite H3 in H10.
-      specialize (H10 (reflexivity _) (reflexivity _)).
-      unfold equiv in H9, H10. rewrite beq_correct in H9, H10. congruence. *)
-
-    + (* In this case, the representant of x and y will not change *)
-      apply beq_correct_false in Heq.
-      rewrite (union_different_same_repr ds w z x); try congruence.
-      rewrite (union_different_same_repr ds w z y); congruence.
-
+    destruct ((repr ds x) =? (repr ds z)) eqn:Heq; beq_to_eq.
+    + (* In this case, the representatives of x and y will change to become (repr w) *)
+      Ltac equiv_congruence := unfold equiv in *; beq_to_eq; congruence.
+      assert (equiv ds z x = true). { equiv_congruence. }
+      assert (equiv ds z y = true). { equiv_congruence. }
+      assert (equiv ds w w = true). { equiv_congruence. }
+      assert (equiv (union ds w z) w x = true). { auto using union_correct. }
+      assert (equiv (union ds w z) w y = true). { auto using union_correct. }
+      equiv_congruence.
+    + (* In this case, the representatives of x and y will not change *)
+      assert (repr (union ds w z) x = repr ds x). { auto using union_different_same_repr. }
+      assert (repr (union ds w z) y = repr ds y). { apply union_different_same_repr. congruence. }
+      congruence.
   Qed.
 
   Fixpoint make_graph (axms: list (A * A)) : D :=
@@ -417,51 +377,51 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     | (x, y)::axms' => union (make_graph axms') x y
     end.
   
+  Lemma make_correct_left': forall axms x y,
+    eq axms x y -> equiv (make_graph axms) x y = true.
+  Proof.
+    intros.
+    induction H.
+  Admitted.
+
   Lemma make_correct_left: forall axms x y,
     eq axms x y -> equiv (make_graph axms) x y = true.
   Proof.
     induction axms; intros.
-    - apply eq_empty in H.
-      subst.
+    - apply eq_empty in H. 
       unfold make_graph, equiv, repr, empty, get.
-      apply beq_refl.
+      beq_to_eq.
+      assumption.
     - destruct a as [z w].
       (* IH: forall x y : A, eq axms x y -> equiv (make_graph axms) x y = true *)
       (* H: eq ((z, w) :: axms) x y *)
       (* Goal: equiv (make_graph ((z, w) :: axms)) x y = true *)
       apply eq_nonempty_inverse in H.
-      destruct H.
-      + (* x was already equivlent to y in axms *)
+      destruct H as [H | [[H1 H2] | [H1 H2]]].
+      + (* x was already equivlent to y with respect to axms *)
         (* H: eq axms x y *)
         apply IHaxms in H.
-        (* H: equiv (make_graph axms) x y = true *)
-        apply union_mono.
-        assumption.
-      + destruct H.
-        * (* x was equivalent to z and y was equivalent to w in axms *)
-          destruct H as [H1 H2].
-          (* H1: eq axms x z *)
-          (* H2: eq axms w y *)
-          apply IHaxms in H1, H2.
-          (* H1: equiv (make_graph axms) z x = true *)
-          (* H2: equiv (make_graph axms) w y = true *)
-          apply union_correct; assumption.
-        * (* x was equivalent to z and y was equivalent to w in axms *)
-          destruct H as [H1 H2].
-          (* H1: eq axms x x *)
-          (* H2: eq axms z y *)
-          apply IHaxms in H1, H2.
-          unfold make_graph. fold make_graph.
-          assert (equiv (make_graph axms) x w = true) as Heqxw; unfold equiv; rewrite beq_correct; unfold equiv in H1; rewrite beq_correct in H1; try congruence.
-          assert (equiv (make_graph axms) y z = true) as Heqyz; unfold equiv; try rewrite beq_correct; unfold equiv in H2; rewrite beq_correct in H2; try congruence.
-          pose proof (union_mono (make_graph axms) x w z w Heqxw).
-          pose proof (union_mono (make_graph axms) y z z w Heqyz).
-          assert (equiv (make_graph axms) w x = true) as Heqwx; unfold equiv; try rewrite beq_correct; try congruence.
-          assert (equiv (make_graph axms) z y = true) as Heqzy; unfold equiv; try rewrite beq_correct; try congruence.
-          pose proof (union_correct (make_graph axms) z y w x Heqzy Heqwx).
-          unfold equiv in H3.
-          rewrite beq_correct in H3.
-          congruence.
+        apply union_mono. assumption.
+      + (* x was equivalent to z and y was equivalent to w with respect to axms *)
+        (* H1: eq axms z x *)
+        (* H2: eq axms w y *)
+        apply IHaxms in H1, H2.
+        apply union_correct; assumption.
+      + (* x was equivalent to z and y was equivalent to w with respect to axms *)
+        (* H1: eq axms w x *)
+        (* H2: eq axms z y *)
+        apply IHaxms in H1, H2.
+        unfold make_graph. fold make_graph.
+        assert (equiv (make_graph axms) x w = true) as Heqxw; unfold equiv; rewrite beq_correct; unfold equiv in H1; rewrite beq_correct in H1; try congruence.
+        assert (equiv (make_graph axms) y z = true) as Heqyz; unfold equiv; try rewrite beq_correct; unfold equiv in H2; rewrite beq_correct in H2; try congruence.
+        pose proof (union_mono (make_graph axms) x w z w Heqxw).
+        pose proof (union_mono (make_graph axms) y z z w Heqyz).
+        assert (equiv (make_graph axms) w x = true) as Heqwx; unfold equiv; try rewrite beq_correct; try congruence.
+        assert (equiv (make_graph axms) z y = true) as Heqzy; unfold equiv; try rewrite beq_correct; try congruence.
+        pose proof (union_correct (make_graph axms) z y w x Heqzy Heqwx).
+        unfold equiv in H3.
+        rewrite beq_correct in H3.
+        congruence.
   Qed.
 
   (*

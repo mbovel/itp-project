@@ -94,12 +94,10 @@ Proof.
    - left. apply eq_refl.
    - destruct IHeq.
      + left. apply eq_sym. assumption.
-     + destruct H0.
-       * right. right. destruct H0. split; assumption.
-       * right. left. destruct H0. split; assumption.
+     + destruct H0; right; [right | left]; destruct H0; split; assumption.
    - destruct IHeq1, IHeq2.
        + eauto using eq_trans, eq_sym.
        + destruct H2; destruct H2; right; [left | right]; eauto using eq_trans, eq_sym.
        + destruct H1; destruct H1; eauto using eq_trans, eq_sym.
-       + destruct H1, H2; destruct H1, H2;  eauto using eq_trans, eq_sym.    
+       + destruct H1, H2; destruct H1, H2; eauto using eq_trans, eq_sym.    
 Qed.
