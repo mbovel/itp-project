@@ -4,15 +4,24 @@
 
 ## Abstract
 
-We implement, verify, and compare increasingly complete decision procedures for the theory of equality in the Coq proof assistant. We start with a decision procedure for equality only (reflexive-symmetric-transitive closure), then extend it to uninterpreted functions (congruent closure), initially for single argument functions and later for multiple arguments. Subsequently, we introduce support for commutativity by adding a normalization step. If time permits, we plan to also extend our framework to handle lists and to provide a mechanized worst-case analysis of the decision procedures performance.
+We implement a simple disjoint-set data structure that directly maps each element to its representative in Coq. We then verify that this data structure can be used to decide if a pair of elements are equivalent in the reflexive-symmetric-transitive closure of a finite set of base axioms. This report provides an overview of the implementation and the proof of correctness.
 
 ## Motivation
 
-Congruence closure is essential for many verification tasks, including in SMT solvers, symbolic execution engines, or the `congruence` tactic in Coq. Our main goal is to better understand the mechanisms behind automatic reasoning about equality by implementing and verifying decision procedures. Our novelty lies in simplifying existing methods to prioritize comprehensibility over performance. We hope to derive insights that can be shared in an instructional blog post or slide deck.
+Deciding the equivalence of two elements is a fundamental operation in many applications such as type systems, SMT solvers, and verification.
+
+As a simple example from software verification, one might want to verify that `x` and `z` are always in the then-branch of the following code:
+
+```scala
+if x == y && y == z then
+  assert(x == z) // Verify that this always holds
+```
 
 ## Background
 
-The *reflexive-symmetric-transitive (RST)* closure $rst(R)$ of a relation $R$ can be inductively defined by the following properties:
+Let $R \subseteq A \times A$ be a binary relation.
+
+We define $rst(R)$ its *reflexive-symmetric-transitive closure*—or *equivalence closure*—as the smallest relation such that:
 
 - Axioms: $R \subseteq rst(R)$
 - Reflexivity: $\forall a. \; (a, a) \in rst(R)$
@@ -20,13 +29,6 @@ The *reflexive-symmetric-transitive (RST)* closure $rst(R)$ of a relation $R$ ca
 - Transitivity: $\forall a, b, c. \;\left((a, b) \in rst(R) \land (b, c) \in rst(R) \right) \Rightarrow (a, c) \in rst(R)$
 
 The [*Union-Find*](https://en.wikipedia.org/wiki/Disjoint-set_data_structure) data structure can be used to efficiently compute this closure. It manages a partition of elements into disjoint sets, supporting efficient union and find operations allowing to query the equivalence classes.
-
-The *congruent closure* `C'` of a relation `C` is the RST closure, with an additional axiom for uninterpreted functions:
-
-- RST: $rst(C) \subseteq C'$
-- Congruence: $\forall f, a, b. \; (f(a), f(b)) \in C' \Rightarrow (a, b) \in C'$
-
-The *congruent closure algorithm* is a decision procedure for handling congruent closure relations, following ideas from [Nelson, 1981]. It works similarly to the union-find algorithm by managing equivalence classes for terms, but has additional machinery to handle the congruence axiom. When adding the equivalence of two elements, it *repairs* the classes by canonicalizing all terms that depend on the two elements.
 
 ## Specification
 
@@ -44,9 +46,9 @@ This definition represents the reflexive-symmetric-transitive closure (or equiva
 
 This inductive definition is used as a specification for the equivalence relation data structure that we implement.
 
-### Implementation
+## Implementation
 
-#### Scala candidates
+### Scala candidates
 
 We explored three different implementations of equivalence closure in Scala before implementing them in Coq. We present them here for reference:
 
@@ -157,9 +159,9 @@ We explored three different implementations of equivalence closure in Scala befo
 
     It is interesting to note that this version is similar to the version 1, but differs in the way that finding the representative is now a constant time operation, that is not defined recursively. The cost is transferred to the `union` operation that now needs to update all pairs that have the same representative as `b`, i.e., elements that are members the classes of equivalence of `b`.
 
-#### Coq implementation
+### Coq implementation
 
-##### Interface
+#### Interface
 
 We first define a Coq `Module` representing the disjoint-set interface:
 
@@ -204,7 +206,7 @@ Module StringBoolEq <: BOOL_EQ.
 End StringBoolEq.
 ```
 
-##### Implementation as a list of pairs
+#### Implementation as a list of pairs
 
 We implemented the fourth representation described by the Scala candidates in Coq, i.e., the implementation based on a list of pairs mapping each element to its representative. We used this particular representation as it was the most practical to work with, while remaining an efficient implementation. In the Coq implementation, the list of pairs is contrained to be a map, i.e., a list of pairs `(A * A)` with no two pairs with the same first element.
 
@@ -273,14 +275,14 @@ Fixpoint make_graph (axms: list (A * A)) : D :=
 
 `make_graph` calls `union` for each pair in the list of pairs, building the disjoint-set data structure incrementally.
 
-#### Runtime complexity analysis
+### Runtime complexity analysis
 
-We analyse briefly the difference in runtime complexity of the algoirthm implemented by the disjoint-set data structure:
+We analyse briefly the difference in runtime complexity of the algorithms implemented by the disjoint-set data structure:
 
 - Equivalence check: the worst case is `O(N)` where `N` is the number of pairs in the list, as we need to traverse the list to find the representative of each element. This could go down to `O(1)` with a smarter implementation of the map structure. The linear cost comes from the representation as a list rather than being inherent to the algorithm.
 - Union: the worst case is `O(N)` where `N` is the number of pairs in the list, as we need to traverse the list to find the representative of each element. This could go down to `O(M)` where `M` is the size of the largest equivalence class, with a smarter implementation of the map structure. Indeed, when adding a new axiom `(w, z)`, the representative of all elements in the class of `z` need to be updated to the representative of `w`.
 
-### Proof
+## Proof of correctness
 
 As stated in the previous section, the main theorem to prove is the following:
 
@@ -293,9 +295,9 @@ which states that two elements are equivalent according to the disjoint-set stru
 
 The proof of this theorem is done by induction on the list of axioms `axms`. The base case is trivial, as the empty list of axioms corresponds to the empty relation, and the disjoint-set data structure built from it is also empty, implying that no different elements are equivalent.
 
-For the inductive case however, we need a way to reason about the equivalence of two elements `x` and `y` in the disjoint-set data structure built from a list of axioms with an additional axiom `(w, z)`. Exposed differently, we need to reason about what happens when we add an axiom `(w, z)` to a list of axioms `axms'` and build the disjoint-set data structure from it. 
+For the inductive case however, we need a way to reason about the equivalence of two elements `x` and `y` in the disjoint-set data structure built from a list of axioms with an additional axiom `(w, z)`. Exposed differently, we need to reason about what happens when we add an axiom `(w, z)` to a list of axioms `axms` and build the disjoint-set data structure from it. 
 
-Formally, this boils down to analysing what `eq (w, z) :: axms' x y` means with respect to `eq axms' x y`. This is one of the pivotal lemmas of the proof.
+Formally, this boils down to analysing what `eq (w, z) :: axms x y` means with respect to `eq axms x y`. This is one of the pivotal lemmas of the proof.
 
 The lemma is the following:
 
@@ -310,7 +312,6 @@ The lemma is the following:
 
 A careful case analysis shows that there are three cases to consider, that we will explain with the help of a diagram:
 
-<!-- The following line adds the diagram svg file -->
 ![Diagram](./res/EPFL-Coq-equivalence-classes.svg)
 
 Let us detail the three cases:
@@ -323,21 +324,124 @@ Let us detail the three cases:
 
 These are the three possible cases leading to `x` and `y` being equivalent under the relation `R` represented by `(z, w) :: axms`. We use this case analysis to prove the inductive case of our proof by induction on the list of axioms.
 
-TODO a section about the complexity introduced by `ensure_repr` and how we mitigate.
+### From theory to practice
 
+In this direction, we need to prove that if two elements are equivalent with respect to the equivalence closure of a list of axioms, then they are equivalent in the disjoint-set data structure built from this list of axioms. This is the `make_correct_left` lemma.
 
-### Conclusion
+To prove it, we proceed by induction on the list of axioms. The base case is trivial. For the inductive case, we use the main lemma described above to reason about the equivalence of two elements `x` and `y` in the disjoint-set data structure built from a list of axioms with an additional axiom `(w, z)`.
+
+```coq
+Lemma make_correct_left: forall axms x y,
+  eq axms x y -> equiv (make_graph axms) x y = true.
+Proof.
+  induction axms; intros.
+  - ...
+  - destruct a as [z w].
+    (* IH: forall x y : A, eq axms x y -> equiv (make_graph axms) x y = true *)
+    (* H: eq ((z, w) :: axms) x y *)
+    (* Goal: equiv (make_graph ((z, w) :: axms)) x y = true *)
+    apply eq_nonempty_inverse in H.
+    (* Prove the 3 cases using union_correct and union_mono *)
+```
+
+To prove these three cases, we use the `union_correct` and `union_mono` lemmas.
+
+The `union_mono` lemma states that if two elements are equivalent in a structure `ds`, then they stay equivalent in the structure `union ds w z` for any elements `w` and `z`. Said otherwise, adding an equivalence cannot split existing equivalence classes, but only merge them—union is monotonic with respect to equivalence.
+
+To prove this lemma, we distinguish two cases: either the representatives of `x` and `z` are the same in `ds`, in which case both `x` and `y` will have the same representative in `union ds w z`, or they are different, in which case the representatives of `x` and `y` will not change in `union ds w z`.
+
+```coq
+Lemma union_mono: forall ds x y w z,
+  equiv ds x y = true -> equiv (union ds w z) x y = true.
+Proof.
+  intros. 
+  unfold equiv in *.
+  destruct ((repr ds x) =? (repr ds z)) eqn:Heq; beq_to_eq.
+  + (* In this case, the representatives of x and y will change to become (repr w) *)
+    ...
+  + (* In this case, the representatives of x and y will not change *)
+    ...
+```
+
+The `union_correct` intuitively states that `union` indeed merges the equivalence classes of two elements `w` and `z`. If `x` and `y` are respectively equivalent to `w` and `z` in the structure `ds`, then `x` and `y` will be equivalent in the structure `union ds w z`.
+
+```coq
+Theorem union_correct: forall ds w x z y,
+  (equiv ds w x = true) -> (equiv ds z y = true) ->
+  (equiv (union ds w z) x y = true).
+Proof.
+  intros. unfold union. unfold equiv in H, H0. beq_to_eq.
+  name_term (ensure_repr (ensure_repr ds (repr ds w)) (repr ds z)) ds'.
+  assert (get ds' x = Some (repr ds w)). { eauto using ensure_repr_get, ensure_repr_mono. }
+  assert (get ds' y = Some (repr ds z)). { eauto using ensure_repr_get, ensure_repr_preserve. }
+  apply union_correct_1; assumption.
+Qed.
+```
+
+Note how we named the result of the `ensure_repr` function `ds'`, and then used small intermediate lemmas to prove that the representatives of `x` and `y` in `ds'` are defined as expected.
+
+```coq
+Lemma union_correct_1: forall ds x xr y yr,
+  (get ds x) = Some xr -> (get ds y) = Some yr ->
+  (equiv (replace_values ds yr xr) x y = true).
+```
+
+### From practice to theory
+
+The other direction of the proof is to prove that if two elements are equivalent in the disjoint-set data structure built from a list of axioms, then they are equivalent in the equivalence closure of this list of axioms. This is the `make_correct_right` lemma.
+
+To prove it, we also proceed by induction on the list of axioms. For the inductive case, we consider 4 cases depending whether  `x` is equivalent to `w` and `y` is equivalent to `w` in `ds`, allowing to come back on one of the 3 possible cases given by the hypothesis and the main lemma `eq_nonempty`.
+
+```coq
+Theorem make_correct_right: forall axms x y,
+  equiv (make_graph axms) x y = true -> eq axms x y.
+Proof.
+  induction axms; intros.
+  - ...
+  - destruct a as [z w]. simpl in H. remember (make_graph axms) as ds.
+    (* IH: forall x y : A, equiv ds x y = true -> eq axms x y *)
+    (* H : equiv (union ds z w) x y = true *)
+    (* Goal: eq ((z, w) :: axms) x y *)
+    apply eq_nonempty.
+    ...
+    destruct (equiv ds x w) eqn:Hxw, (equiv ds y w) eqn:Hyw; unfold equiv in *; beq_to_eq.
+    * (* x and y are already equivalent in ds *)
+    * (* repr of x change, repr of y stays the same *)
+    * (* repr of x stays the same, repr of y change *)
+    * (* repr of x was not w and repr of y was not w *)
+Qed.
+```
+
+In order to prove the 4 cases, we use the `union_repr_change` and `union_different_same_repr` lemmas.
+
+```coq
+Lemma union_repr_change: forall ds x w z,
+  repr ds x  = repr ds w -> repr (union ds z w) x = repr ds z.
+```
+
+```coq
+Lemma union_different_same_repr: forall ds x w z,
+  repr ds x <> repr ds w -> repr (union ds z w) x = repr ds x.
+```
+
+## Implementation choices
+
+TODO(Matt).
+
+### Modules vs Type Classes
+
+### Induction on the list of axioms
+
+### Custom Map vs `FMap`
+
+## Related work
+
+- [Formalization of a persistent union-find data structure in Coq](https://www.lri.fr/~filliatr/puf/)
+- [A Simple, Probably-Not-Exp-Time Disjoint Set in Coq](https://www.philipzucker.com/simple-coq-union-find/)
+- [StackOverflow question](https://stackoverflow.com/questions/66630519/how-to-implement-a-union-find-disjoint-set-data-structure-in-coq/66875872#66875872)
+
+## Conclusion
 
 In this work, we implemented a disjoint-set data structure in Coq to represent the equivalence closure of a relation. We used a list of pairs to represent the relation, and implemented the disjoint-set data structure as a list of pairs mapping each element to its representative. We proved that the disjoint-set data structure correctly represents the equivalence closure of the relation.
 
 This structure actually implements a complete procedure for equivalence.
-
-## References
-
-- [Formalization of a persistent union-find data structure in Coq](https://www.lri.fr/~filliatr/puf/)
-- [A Simple, Probably-Not-Exp-Time Disjoint Set in Coq](https://www.philipzucker.com/simple-coq-union-find/)
-- [Techniques for Program Verification, Nelson, 1981](https://people.eecs.berkeley.edu/~necula/Papers/nelson-thesis.pdf): original paper on congruent closure algorithm.
-- [Intro to EGraphs, Colab](https://colab.research.google.com/drive/1tNOQijJqe5tw-Pk9iqd6HHb2abC5aRid): nice introduction to EGraphs.
-- [EGG (EGraphs Good)](https://egraphs-good.github.io): combining EGraphs and equality saturation to implement optimizers.
-- [Proof-producing Congruence Closure](https://www.cs.upc.edu/~oliveras/rta05.pdf)
-- [Project: congruence closure algorithm in Coq using dependent types](https://github.com/knuthingmuch/congruence-closure): similar course project from 2019.
