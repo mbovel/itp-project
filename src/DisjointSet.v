@@ -2,6 +2,7 @@ Require Import Coq.Lists.List.
 Require Import Coq.Strings.String.
 Require Import Coq.Bool.Bool.
 Require Import Coq.Structures.Equalities.
+Require Import Coq.Logic.Eqdep_dec.
 Import List.
 Import ListNotations.
 
@@ -382,7 +383,23 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
   Proof.
     intros.
     induction H.
-  Admitted.
+    - induction axms.
+      + contradiction.
+      + destruct a as [z w].
+        destruct ((x =? z) && (y =? w)) eqn:Hxy.
+        * apply andb_true_iff in Hxy. destruct Hxy. beq_to_eq. subst.
+          unfold make_graph. fold make_graph.
+          apply union_correct; apply equiv_refl.
+        * apply andb_false_iff in Hxy. rewrite !nbeq_correct in Hxy.
+          apply union_mono. fold make_graph.
+          apply IHaxms.
+          destruct H.
+          -- injection H as H H'. subst. destruct Hxy; contradiction.
+          -- assumption.
+    - unfold equiv in *. beq_to_eq. congruence.
+    - unfold equiv in *. beq_to_eq. congruence.
+    - unfold equiv in *. beq_to_eq. congruence.
+  Qed.
 
   Lemma make_correct_left: forall axms x y,
     eq axms x y -> equiv (make_graph axms) x y = true.
