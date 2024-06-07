@@ -6,6 +6,8 @@
 
 We implement a simple disjoint-set data structure that directly maps each element to its representative in Coq. We then verify that this data structure can be used to decide if a pair of elements are equivalent with respect to the equivalence relation derived from a finite set of base axioms.
 
+Code: https://github.com/mbovel/itp-project.
+
 ## Motivation
 
 Deciding the equivalence of two elements is useful in many applications such as type systems, SMT solvers, and verification.
