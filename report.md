@@ -4,9 +4,9 @@
 
 ## Abstract
 
-We implement a simple disjoint-set data structure that directly maps each element to its representative in Coq. We then verify that this data structure can be used to decide if a pair of elements are equivalent with respect to the equivalence relation derived from a finite set of base axioms.
+We implement a simple disjoint-set data structure in Coq, and prove it correct. Our data structure uses a flat representation that directly maps each element to its representative. To verify its correctness, we prove that it can be used to decide if a pair of elements are equivalent with respect to the equivalence relation derived from a finite set of base axioms.
 
-Code: https://github.com/mbovel/itp-project.
+The Coq sources can be found at https://github.com/mbovel/itp-project.
 
 ## Motivation
 
@@ -52,7 +52,7 @@ This inductive definition is used as a specification for the equivalence relatio
 
 ### Scala candidates
 
-We explored three different implementations of equivalence closure in Scala before implementing them in Coq. We present them here for reference:
+We explored four different implementations of equivalence closure in Scala before implementing them in Coq. We present them here for reference:
 
 1. Map from each element to its parent, corresponding to union-find data structure without rank or path compression:
 
@@ -210,7 +210,7 @@ End StringBoolEq.
 
 #### Implementation as a list of pairs
 
-We implemented the fourth representation described by the Scala candidates in Coq, i.e., the implementation based on a list of pairs mapping each element to its representative. We used this particular representation as it was the most practical to work with, while remaining an efficient implementation. In the Coq implementation, the list of pairs is contrained to be a map, i.e., a list of pairs `(A * A)` with no two pairs with the same first element.
+We implemented the fourth representation described by the Scala candidates in Coq, i.e., the implementation based on a list of pairs mapping each element to its representative. We used this particular representation as it was the most practical to work with.
 
 We implemented it as of as another `Module` in Coq, implementing the interface described above:
 
@@ -320,7 +320,7 @@ Let us detail the three cases:
 
 1. `x` and `y` are already equivalent in the relation `R` represented by `axms`. In this case, adding the axiom `(z, w)` does not change the equivalence of `x` and `y` in the relation `R` represented by `(z, w) :: axms`.
 
-2. `x` and `y` are in two different classes in the relation `R` represented by `axms`, and adding a new axiom `(w, z)` acutally merges the two classes, because `w` is in the same class as `x` and `z` is in the same class as `y`.
+2. `x` and `y` are in two different classes in the relation `R` represented by `axms`, and adding a new axiom `(w, z)` actually merges the two classes, because `w` is in the same class as `x` and `z` is in the same class as `y`.
 
 3. This is the same situation as 2., but with `w` and `z` swapped. This case is symmetric to the previous one.
 
@@ -330,7 +330,7 @@ These are the three possible cases leading to `x` and `y` being equivalent under
 
 In this direction, we need to prove that if two elements are equivalent with respect to the equivalence closure of a list of axioms, then they are equivalent in the disjoint-set data structure built from this list of axioms. This is the `make_correct_left` lemma.
 
-To prove it, we proceed by induction on the list of axioms. The base case is trivial. For the inductive case, we use the main lemma described above to reason about the equivalence of two elements `x` and `y` in the disjoint-set data structure built from a list of axioms with an additional axiom `(w, z)`.
+To prove it, we proceed by induction on the list of axioms. The base case is trivial. For the inductive case, we use the main lemma described above to split the hypothesis into three cases.
 
 ```coq
 Lemma make_correct_left: forall axms x y,
@@ -348,7 +348,7 @@ Proof.
 
 To prove these three cases, we use the `union_correct` and `union_mono` lemmas.
 
-The `union_mono` lemma states that if two elements are equivalent in a liste `ds`, then they stay equivalent in the list `union ds w z`, for any `w` and `z`. Said otherwise, adding an equivalence cannot split existing equivalence classes, but only merge them—union is monotonic with respect to equivalence.
+The `union_mono` lemma states that if two elements are equivalent in a list `ds`, then they stay equivalent in the list `union ds w z`, for any `w` and `z`. Said otherwise, adding an equivalence cannot split existing equivalence classes, but only merges them—union is monotonic with respect to equivalence.
 
 To prove this lemma, we distinguish two cases: either the representatives of `x` and `z` are the same in `ds`, in which case both `x` and `y` will have the same representative in `union ds w z`, or they are different, in which case the representatives of `x` and `y` will not change in `union ds w z`.
 
@@ -418,13 +418,13 @@ Proof.
 Qed.
 ```
 
-Note that this version also uses the `union_correct` and `union_mono` lemmas to prove the inductive case.
+Note that this version also uses the `union_correct` and `union_mono` lemmas to prove the inductive case, but does not need the `eq_nonempty_inverse` lemma.
 
 ### From practice to theory
 
 The other direction of the proof is to prove that if two elements are equivalent in the disjoint-set data structure built from a list of axioms, then they are equivalent in the equivalence closure of this list of axioms. This is the `make_correct_right` lemma.
 
-To prove it, we proceed by induction on the list of axioms. For the inductive case, we consider 4 cases depending on whether `x` is equivalent to `w` and `y` is equivalent to `w` in `ds`, allowing to come back to one of the 3 possible cases given by lemma `eq_nonempty`.
+To prove it, we proceed by induction on the list of axioms. For the inductive case, we use the `eq_nonempty` lemma to split the goal into a the three possible cases. We then consider four cases depending on whether `x` is equivalent to `w` and `y` is equivalent to `w` in `ds`, each allowing to conclude to one of the three possible conclusions.
 
 ```coq
 Theorem make_correct_right: forall axms x y,
@@ -527,15 +527,13 @@ We encountered two issues with this implementation:
 1. The need to repeat the evidence parameter such as `{ev: BoolEq A}` in multiple definitions. Could that be avoided using sections?
 2. `Unable to satisfy the following constraints` errors that we were not able to resolve easily.
 
-After trying to resolve these issues for a few hours, we decided to switch to modules which allowed us to get started faster.
+We decided to switch to modules, as it allowed us to get started faster.
 
 ### Custom Map vs `FMap`
 
 We decided to implement our own map structure as a list of pairs, instead of using the [`FMap`](https://coq.inria.fr/doc/V8.13.2/stdlib/Coq.FSets.FMapInterface.html) module provided by Coq.
 
-The main reason for this choice is that we wanted to use the syntactic equality `=` instead of the `eq` of `Structures.Equalities`. But maybe we could just have defined `eq` in terms of `=`?
-
-Another reason was that we wanted to have more control over the implementation of the map and make sure that we understood every part of it.
+The main reason for this choice is that we wanted to use the syntactic equality `=` instead of the `eq` of `Structures.Equalities`. Another reason was that we wanted to have more control over the implementation of the map and make sure that we understood every part of it.
 
 ## Related work
 
@@ -549,7 +547,7 @@ Another reason was that we wanted to have more control over the implementation o
 
 - **[Formalization of a persistent union-find data structure in Coq](https://www.lri.fr/~filliatr/puf/)**
 
-  This paper presents the formalization of a real-world union-find data structure in Coq, with path compression and rank heuristics. This implementation much more complex than ours, but guarantees the inverse Ackermann complexity.
+  This paper presents the formalization of a real-world union-find data structure in Coq, with path compression and rank heuristics. This implementation is more complex than ours, but guarantees the inverse Ackermann complexity.
 
 ## Conclusion
 
