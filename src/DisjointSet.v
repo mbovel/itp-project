@@ -268,19 +268,11 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
 
   Lemma equiv_refl: forall ds x,
     equiv ds x x = true.
-  Proof.
-    intros.
-    unfold equiv.
-    destruct (get ds x) eqn:Heq; apply beq_correct; reflexivity.
-  Qed.
+  Proof. intros. unfold equiv in *. beq_to_eq. reflexivity. Qed.
 
   Lemma get_repr: forall ds x rx,
     get ds x = Some rx -> repr ds x = rx.
-  Proof.
-    intros.
-    unfold repr.
-    rewrite H. reflexivity.
-  Qed.
+  Proof. intros. unfold repr. rewrite H. reflexivity. Qed.
   
   Definition union (ds: D) (x y: A) : D :=
     let xr := (repr ds x) in
@@ -377,28 +369,25 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     | [] => empty
     | (x, y)::axms' => union (make_graph axms') x y
     end.
+
+  Lemma make_graph_in: forall axms x y,
+    In (x, y) axms -> equiv (make_graph axms) x y = true.
+  Proof.
+    intros.
+    induction axms.
+    - contradiction.
+    - destruct H.
+      + subst. simpl. apply union_correct; apply equiv_refl.
+      + destruct a as [z w]. simpl. apply union_mono, IHaxms. assumption.
+  Qed.
   
   Lemma make_correct_left': forall axms x y,
     eq axms x y -> equiv (make_graph axms) x y = true.
   Proof.
     intros.
     induction H.
-    - induction axms.
-      + contradiction.
-      + destruct a as [z w].
-        destruct ((x =? z) && (y =? w)) eqn:Hxy.
-        * apply andb_true_iff in Hxy. destruct Hxy. beq_to_eq. subst.
-          unfold make_graph. fold make_graph.
-          apply union_correct; apply equiv_refl.
-        * apply andb_false_iff in Hxy. rewrite !nbeq_correct in Hxy.
-          apply union_mono. fold make_graph.
-          apply IHaxms.
-          destruct H.
-          -- injection H as H H'. subst. destruct Hxy; contradiction.
-          -- assumption.
-    - unfold equiv in *. beq_to_eq. congruence.
-    - unfold equiv in *. beq_to_eq. congruence.
-    - unfold equiv in *. beq_to_eq. congruence.
+    1: apply make_graph_in. assumption.
+    all: unfold equiv in *; beq_to_eq; congruence.
   Qed.
 
   Lemma make_correct_left: forall axms x y,
