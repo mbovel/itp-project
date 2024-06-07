@@ -139,13 +139,7 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
 
   Lemma nbeq_correct: forall x y,
     x =? y = false <-> x <> y.
-  Proof.
-    split; intros.
-    - intros H1. apply beq_correct in H1. congruence.
-    - destruct (x =? y) eqn:Heq.
-      + apply beq_correct in Heq. contradiction.
-      + reflexivity.
-  Qed.
+  Proof. intros. rewrite <- not_true_iff_false, beq_correct. reflexivity. Qed.
 
   Ltac beq_to_eq :=
     repeat match goal with
@@ -165,8 +159,7 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
       intros.
       simpl.
       destruct (k =? k0) eqn:Hk.
-      + apply beq_correct in Hk. subst.
-        destruct (v0 =? v1) eqn:Hv; beq_to_eq.
+      + destruct (v0 =? v1) eqn:Hv; beq_to_eq; subst.
         * reflexivity.
         * simpl in H. rewrite beq_refl in H. congruence.
       + simpl in H. rewrite Hk in H. apply IHds. assumption.
@@ -282,17 +275,9 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
 
   Lemma beq_correct_false: forall x y,
     x =? y = false <-> x <> y.
-  Proof.
-    intros. split; intros.
-    - intros H1. apply beq_correct in H1. rewrite H1 in H. discriminate.
-    - destruct (x =? y) eqn:Heq.
-      + apply beq_correct in Heq. contradiction.
-      + reflexivity.
-  Qed.
+  Proof. intros. split; intros; beq_to_eq; assumption. Qed.
 
-  Ltac name_term term name :=
-    pose term as name;
-    change term with name.
+  Ltac name_term term name := pose term as name; change term with name.
 
   Lemma union_different_same_repr: forall ds z w x,
     repr ds x <> repr ds w -> repr (union ds z w) x = repr ds x.
@@ -315,18 +300,11 @@ Module DisjointSetListPair (Import BE : BOOL_EQ) <: DISJOINT_SET BE.
     (get ds y) = Some yr ->
     (equiv (replace_values ds yr xr) x y = true).
   Proof.
-    intros.
-    unfold equiv in *.
-    rewrite beq_correct in *.
-    unfold repr.
-    pose proof (replace_values_correct ds y yr xr H0) as H1.
-    rewrite H1.
+    intros. unfold equiv, repr in *. beq_to_eq.
+    rewrite (replace_values_correct ds y yr xr H0).
     destruct (eq_dec xr yr) as [Heq | Hneq].
-    - subst. rewrite replace_values_correct.
-      + reflexivity.
-      + assumption.
-    - pose proof (replace_values_correct_neq ds x xr yr xr H Hneq) as H2.
-      rewrite H2. reflexivity.
+    - rewrite replace_values_correct; congruence.
+    - rewrite (replace_values_correct_neq ds x xr yr xr H Hneq). reflexivity.
   Qed.
 
   Theorem union_correct: forall ds w x z y,
